@@ -1,0 +1,178 @@
+{
+  "common": {
+    "appName": "Qiora 气和",
+    "tagline": "AI 智能养生顾问",
+    "login": "登录",
+    "signup": "注册",
+    "submit": "提交",
+    "back": "返回",
+    "next": "下一步",
+    "loading": "加载中...",
+    "error": "出了点问题",
+    "learnMore": "了解更多"
+  },
+  "landing": {
+    "hero": {
+      "title": "发现您的养生体质",
+      "subtitle": "融合人工智能与中医养生理念，为您提供个性化的生活方式建议",
+      "cta": "开始免费测评",
+      "ctaSub": "27道题，约5分钟"
+    },
+    "features": {
+      "screening": {
+        "title": "AI 体质测评",
+        "description": "回答27道经科学验证的问题，了解您的独特体质类型"
+      },
+      "insights": {
+        "title": "个性化建议",
+        "description": "根据您的体质特征，获得饮食、运动和生活方式的定制建议"
+      },
+      "practitioner": {
+        "title": "专家审核",
+        "description": "每份建议都经过资深中医养生顾问的审核确认"
+      }
+    },
+    "education": {
+      "title": "什么是体质？",
+      "subtitle": "在中医理论中，体质是理解您身体的关键",
+      "constitution": {
+        "term": "中医体质",
+        "chinese": "体质",
+        "definition": "体质是人体生命过程中，在先天禀赋和后天获得的基础上所形成的形态结构、生理功能、心理状态和适应能力方面综合的、相对稳定的固有特质。"
+      },
+      "classification": {
+        "term": "九种类型",
+        "chinese": "体质分类",
+        "definition": "根据人群中个体各自不同的表现，通过系统的整理、分析、归纳，中医将体质分为9种基本类型——每种类型都有独特的身体、情绪和环境适应特征。"
+      },
+      "differentiation": {
+        "term": "体质辨识",
+        "chinese": "辨识",
+        "definition": "以人的体质为认知对象，从体质状态及不同分类的特性，把握健康与疾病的整体要素与个体差异，从而为个性化养生指导奠定基础。"
+      },
+      "biased": {
+        "term": "您的独特模式",
+        "chinese": "偏颇体质",
+        "definition": "大多数人都有一种或多种\"偏颇\"体质——偏离完美平衡的倾向。了解您的体质类型，是迈向适合自己身体的生活方式的第一步。"
+      }
+    },
+    "pricing": {
+      "title": "投资您的健康",
+      "entry": {
+        "title": "初次体验",
+        "price": "$49",
+        "per": "/次",
+        "subtitle": "先试一次",
+        "features": [
+          "最多3个问题",
+          "专家审核指导",
+          "48小时内送达"
+        ]
+      },
+      "core": {
+        "title": "核心版",
+        "badge": "最受欢迎",
+        "price": "$499",
+        "per": "/月",
+        "subtitle": "您提问，我们回复",
+        "features": [
+          "根据您的体质变化持续提供个性化指导",
+          "随时提问，24-48小时内获得回复",
+          "体质变化追踪",
+          "每条回复均经专家审核"
+        ]
+      },
+      "premium": {
+        "title": "高级版",
+        "price": "$1,499",
+        "per": "/月",
+        "subtitle": "我们主动关注，引导您的进展",
+        "features": [
+          "每周由您的专属养生顾问主动跟进",
+          "了解您完整历史的专属养生顾问",
+          "根据您的状态变化持续调整方案",
+          "主动提问时12小时内优先响应"
+        ]
+      },
+      "transformation": {
+        "text": "想要长期蜕变？",
+        "link": "订阅高级版满3个月后，可申请年度蜕变计划——名额有限。",
+        "contact": "联系我们"
+      }
+    }
+  },
+  "screening": {
+    "title": "体质测评",
+    "subtitle": "请根据近一年的体验和感觉回答以下问题",
+    "progress": "第 {current} 题，共 {total} 题",
+    "genderSelect": {
+      "title": "开始之前",
+      "subtitle": "部分问题因性别而异",
+      "male": "男性",
+      "female": "女性"
+    },
+    "sections": {
+      "energy": "精力与活力",
+      "temperature": "寒热感受",
+      "skin": "皮肤与面色",
+      "digestion": "消化与身体",
+      "emotion": "情绪与心理",
+      "other": "疼痛、过敏与其他"
+    },
+    "scale": {
+      "1": "没有（根本不）",
+      "2": "很少（有一点）",
+      "3": "有时（有些）",
+      "4": "经常（相当）",
+      "5": "总是（非常）"
+    },
+    "tongueUpload": {
+      "title": "舌象照片（可选）",
+      "description": "上传舌头照片，获得更全面的养生建议",
+      "upload": "上传照片",
+      "capture": "拍照",
+      "skip": "跳过此步",
+      "consent": "我同意将舌象照片用于养生分析"
+    },
+    "result": {
+      "title": "您的养生体质报告",
+      "primaryConstitution": "主要体质",
+      "constitutionChart": "体质分析",
+      "yourTraits": "您可能会认出这些特征",
+      "detailedProfile": "详细特征",
+      "bodyType": "体型倾向",
+      "personalityTendency": "性格倾向",
+      "seasonalSensitivity": "季节与环境适应",
+      "secondaryConstitutions": "兼夹体质",
+      "determination": {
+        "yes": "是",
+        "basically_yes": "基本是",
+        "tendency": "倾向是",
+        "no": "否"
+      },
+      "locked": {
+        "dietary": "个性化饮食指导",
+        "seasonal": "四季养生日历",
+        "activity": "运动与生活方式方案"
+      },
+      "deeperCta": "解锁完整养生报告",
+      "deeperCtaSub": "获得由中医养生顾问审核的个性化饮食、运动和生活方式建议"
+    }
+  },
+  "disclaimer": {
+    "banner": "Qiora 提供基于中医养生理念的健康生活方式建议。本平台不提供医疗诊断或治疗建议。如有健康问题，请咨询专业医疗人员。",
+    "footer": "本信息仅供参考学习之用。",
+    "emergency": "您描述的情况可能需要立即就医。如遇紧急情况，请拨打 911。心理健康危机请拨打 988。"
+  },
+  "constitutions": {
+    "balanced": "平和质",
+    "qi_deficiency": "气虚质",
+    "yang_deficiency": "阳虚质",
+    "yin_deficiency": "阴虚质",
+    "phlegm_dampness": "痰湿质",
+    "damp_heat": "湿热质",
+    "blood_stasis": "血瘀质",
+    "qi_stagnation": "气郁质",
+    "inherited_special": "特禀质"
+  }
+}
