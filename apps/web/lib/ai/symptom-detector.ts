@@ -5,7 +5,7 @@
  */
 
 const EMERGENCY_PATTERNS: RegExp[] = [
-  // English
+  // English — life-threatening
   /chest\s*pain/i,
   /difficulty\s*breathing/i,
   /can'?t\s*breathe/i,
@@ -24,7 +24,18 @@ const EMERGENCY_PATTERNS: RegExp[] = [
   /severe\s*allergic/i,
   /anaphyla/i,
 
-  // Chinese
+  // English — additional critical patterns
+  /blood\s*in\s*(stool|urine)/i,
+  /sudden\s*severe\s*headache/i,
+  /numbness\s*(on\s*)?one\s*side/i,
+  /slurred\s*speech/i,
+  /severe\s*abdominal\s*pain/i,
+  /high\s*fever/i,
+  /fever\s*(over|above)\s*(103|104|39|40)/i,
+  /pregnan(t|cy).{0,30}(pain|bleed|cramp|emergency)/i,
+  /(infant|baby|child|toddler|newborn).{0,30}(sick|fever|emergency|not\s*breathing)/i,
+
+  // Chinese — 生命危险
   /胸痛/,
   /呼吸困难/,
   /自杀/,
@@ -38,6 +49,17 @@ const EMERGENCY_PATTERNS: RegExp[] = [
   /过量服药/,
   /中毒/,
   /严重过敏/,
+
+  // Chinese — 新增危急
+  /便血/,
+  /尿血/,
+  /突发剧烈头痛/,
+  /一侧麻木/,
+  /言语不清/,
+  /剧烈腹痛/,
+  /高烧/,
+  /怀孕.{0,10}(出血|疼痛|不适)/,
+  /(婴儿|宝宝|孩子|小孩).{0,10}(发烧|生病|不舒服|呼吸)/,
 ];
 
 export interface SymptomDetectionResult {

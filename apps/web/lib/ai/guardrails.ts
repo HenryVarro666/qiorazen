@@ -9,6 +9,7 @@
  */
 
 const BANNED_PATTERNS: [RegExp, string][] = [
+  // Core medical terms
   [/\bdiagnos(e[ds]?|is|tic)\b/gi, "wellness assessment"],
   [/\btreat(s|ed|ing|ment)?\b/gi, "wellness approach"],
   [/\bcure[ds]?\b/gi, "support"],
@@ -25,6 +26,31 @@ const BANNED_PATTERNS: [RegExp, string][] = [
   [/\bclinical(ly)?\b/gi, "observational"],
   [/\btherapy\b/gi, "practice"],
   [/\btherapeutic\b/gi, "supportive"],
+
+  // Provider terms
+  [/\bpatient[ds]?\b/gi, "user"],
+  [/\bdoctor[ds]?\b/gi, "wellness advisor"],
+  [/\bphysician[ds]?\b/gi, "wellness advisor"],
+  [/\bclinic[ds]?\b/gi, "platform"],
+  [/\bprognosis\b/gi, "outlook"],
+
+  // Pharmaceutical terms (block entirely → replace with safety redirect)
+  [/\bdosage[ds]?\b/gi, "[please consult a healthcare professional]"],
+  [/\bdose[ds]?\b/gi, "[please consult a healthcare professional]"],
+  [/\bdrug[ds]?\b/gi, "[please consult a healthcare professional]"],
+  [/\bside\s*effect[ds]?\b/gi, "[please consult a healthcare professional]"],
+  [/\bcontraindication[ds]?\b/gi, "[please consult a healthcare professional]"],
+  [/\bsurgery\b/gi, "[please consult a healthcare professional]"],
+
+  // Chinese medical terms
+  [/患者/g, "用户"],
+  [/医生|大夫/g, "养生顾问"],
+  [/处方|药方/g, "建议"],
+  [/剂量|用量/g, "[请咨询专业医疗人员]"],
+  [/副作用/g, "[请咨询专业医疗人员]"],
+  [/手术/g, "[请咨询专业医疗人员]"],
+  [/化验|检查报告/g, "[请咨询专业医疗人员]"],
+  [/确诊/g, "体质分析"],
 ];
 
 export interface GuardrailResult {
