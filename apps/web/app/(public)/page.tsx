@@ -224,9 +224,24 @@ export default function LandingPage() {
         </p>
       </section>
 
-      {/* Disclaimer Footer */}
-      <footer className="mt-auto border-t bg-muted/50 px-4 py-6 text-center text-xs text-muted-foreground">
-        {t("disclaimer.banner")}
+      {/* Footer */}
+      <footer className="mt-auto border-t bg-muted/50 px-4 py-8">
+        <div className="mx-auto max-w-4xl">
+          <div className="flex justify-center gap-6 text-xs">
+            <Link href="/terms" className="text-muted-foreground hover:text-foreground underline">
+              Terms of Service
+            </Link>
+            <Link href="/privacy" className="text-muted-foreground hover:text-foreground underline">
+              Privacy Policy
+            </Link>
+            <a href="mailto:hello@qiorazen.com" className="text-muted-foreground hover:text-foreground underline">
+              Contact
+            </a>
+          </div>
+          <p className="mt-4 text-center text-xs text-muted-foreground">
+            {t("disclaimer.banner")}
+          </p>
+        </div>
       </footer>
     </div>
   );
