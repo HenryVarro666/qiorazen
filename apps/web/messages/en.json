@@ -1,0 +1,178 @@
+{
+  "common": {
+    "appName": "Qiora",
+    "tagline": "AI-Powered Wellness Insights",
+    "login": "Log In",
+    "signup": "Sign Up",
+    "submit": "Submit",
+    "back": "Back",
+    "next": "Next",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "learnMore": "Learn More"
+  },
+  "landing": {
+    "hero": {
+      "title": "Discover Your Wellness Profile",
+      "subtitle": "AI-powered insights inspired by Traditional Chinese Medicine to guide your lifestyle choices",
+      "cta": "Start Free Screening",
+      "ctaSub": "27 questions, about 5 minutes"
+    },
+    "features": {
+      "screening": {
+        "title": "AI Wellness Screening",
+        "description": "Answer 27 scientifically validated questions to discover your body's unique constitution"
+      },
+      "insights": {
+        "title": "Personalized Insights",
+        "description": "Receive tailored lifestyle, dietary, and activity suggestions based on your profile"
+      },
+      "practitioner": {
+        "title": "Expert Review",
+        "description": "Every insight is reviewed by an experienced TCM wellness consultant"
+      }
+    },
+    "education": {
+      "title": "What Is Constitution?",
+      "subtitle": "In Traditional Chinese Medicine, your constitution is the key to understanding your body",
+      "constitution": {
+        "term": "Constitution",
+        "chinese": "体质",
+        "definition": "Your constitution is the comprehensive, relatively stable set of inherent traits — encompassing your physique, physiological tendencies, psychological patterns, and adaptive capacity — shaped by both your innate nature and life experience."
+      },
+      "classification": {
+        "term": "9 Types",
+        "chinese": "体质分类",
+        "definition": "Through systematic analysis of individual differences across populations, TCM identifies 9 fundamental constitution types — each with distinct physical, emotional, and environmental characteristics."
+      },
+      "differentiation": {
+        "term": "Differentiation",
+        "chinese": "体质辨识",
+        "definition": "By understanding your unique constitutional pattern, we can identify your body's tendencies and individual differences — laying the foundation for personalized wellness guidance."
+      },
+      "biased": {
+        "term": "Your Unique Pattern",
+        "chinese": "偏颇体质",
+        "definition": "Most people have one or more \"biased\" constitutions — tendencies that deviate from perfect balance. Knowing yours is the first step toward a lifestyle that works with your body, not against it."
+      }
+    },
+    "pricing": {
+      "title": "Invest in Your Wellness",
+      "entry": {
+        "title": "Starter Session",
+        "price": "$49",
+        "per": "per request",
+        "subtitle": "Try it once",
+        "features": [
+          "Up to 3 questions",
+          "Practitioner-reviewed guidance",
+          "Delivered within 48 hours"
+        ]
+      },
+      "core": {
+        "title": "Core",
+        "badge": "Most Popular",
+        "price": "$499",
+        "per": "/month",
+        "subtitle": "You reach out, we respond",
+        "features": [
+          "Continuous personalized guidance tailored to your evolving condition",
+          "Ask questions anytime, answers within 24–48h",
+          "Constitution tracking over time",
+          "Every response reviewed by a practitioner"
+        ]
+      },
+      "premium": {
+        "title": "Premium",
+        "price": "$1,499",
+        "per": "/month",
+        "subtitle": "We reach out, guide your progress",
+        "features": [
+          "Weekly proactive check-ins from your dedicated wellness advisor",
+          "Your dedicated wellness advisor who knows your full history",
+          "Continuous plan adjustments based on your evolving state",
+          "Priority 12-hour response when you reach out"
+        ]
+      },
+      "transformation": {
+        "text": "Looking for long-term transformation?",
+        "link": "After 3+ months of Premium, apply for our annual Transformation program — limited spots available.",
+        "contact": "Contact Us"
+      }
+    }
+  },
+  "screening": {
+    "title": "Wellness Screening",
+    "subtitle": "Answer based on how you've felt over the past year",
+    "progress": "Question {current} of {total}",
+    "genderSelect": {
+      "title": "Before we begin",
+      "subtitle": "Some questions are tailored by gender",
+      "male": "Male",
+      "female": "Female"
+    },
+    "sections": {
+      "energy": "Energy & Vitality",
+      "temperature": "Temperature Sensitivity",
+      "skin": "Skin & Complexion",
+      "digestion": "Digestion & Body",
+      "emotion": "Emotions & Mind",
+      "other": "Pain, Allergies & Other"
+    },
+    "scale": {
+      "1": "Not at all",
+      "2": "Rarely",
+      "3": "Sometimes",
+      "4": "Often",
+      "5": "Always"
+    },
+    "tongueUpload": {
+      "title": "Tongue Image (Optional)",
+      "description": "Upload a photo of your tongue for additional wellness insights",
+      "upload": "Upload Photo",
+      "capture": "Take Photo",
+      "skip": "Skip This Step",
+      "consent": "I consent to my tongue image being analyzed for wellness insights"
+    },
+    "result": {
+      "title": "Your Wellness Profile",
+      "primaryConstitution": "Primary Constitution",
+      "constitutionChart": "Constitution Analysis",
+      "yourTraits": "You may recognize these traits",
+      "detailedProfile": "Detailed Profile",
+      "bodyType": "Your Body Type",
+      "personalityTendency": "Your Personality Tendency",
+      "seasonalSensitivity": "Your Seasonal Sensitivity",
+      "secondaryConstitutions": "Secondary Tendencies",
+      "determination": {
+        "yes": "Yes",
+        "basically_yes": "Basically Yes",
+        "tendency": "Tendency",
+        "no": "No"
+      },
+      "locked": {
+        "dietary": "Personalized Dietary Guidance",
+        "seasonal": "Seasonal Wellness Calendar",
+        "activity": "Activity & Lifestyle Plan"
+      },
+      "deeperCta": "Unlock Full Wellness Report",
+      "deeperCtaSub": "Get personalized dietary, activity, and lifestyle guidance reviewed by a TCM wellness consultant"
+    }
+  },
+  "disclaimer": {
+    "banner": "Qiora provides wellness and lifestyle insights based on Traditional Chinese Medicine concepts. This is not medical advice, diagnosis, or treatment. Always consult a qualified healthcare professional for medical concerns.",
+    "footer": "This information is for educational purposes only.",
+    "emergency": "You've described something that may require immediate medical attention. If you're experiencing a medical emergency, please call 911. For mental health crises, call 988."
+  },
+  "constitutions": {
+    "balanced": "Balanced",
+    "qi_deficiency": "Qi Deficiency",
+    "yang_deficiency": "Yang Deficiency",
+    "yin_deficiency": "Yin Deficiency",
+    "phlegm_dampness": "Phlegm-Dampness",
+    "damp_heat": "Damp-Heat",
+    "blood_stasis": "Blood Stasis",
+    "qi_stagnation": "Qi Stagnation",
+    "inherited_special": "Inherited Special"
+  }
+}
