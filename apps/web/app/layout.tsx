@@ -4,7 +4,7 @@ import { getLocale, getMessages } from "next-intl/server";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Qiora - AI-Powered Wellness Insights",
+  title: "Qiorazen - AI-Powered Wellness Insights",
   description:
     "Discover your wellness profile with AI-powered insights inspired by Traditional Chinese Medicine. Educational lifestyle guidance, not medical advice.",
 };

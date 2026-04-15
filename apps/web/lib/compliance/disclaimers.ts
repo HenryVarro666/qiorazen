@@ -2,8 +2,8 @@ export const DISCLAIMER_VERSION = "v1.0";
 
 export const DISCLAIMERS = {
   banner: {
-    en: "Qiora provides wellness and lifestyle insights based on Traditional Chinese Medicine concepts. This is not medical advice, diagnosis, or treatment. Always consult a qualified healthcare professional for medical concerns.",
-    zh: "Qiora 提供基于中医养生理念的健康生活方式建议。本平台不提供医疗诊断或治疗建议。如有健康问题，请咨询专业医疗人员。",
+    en: "Qiorazen provides wellness and lifestyle insights based on Traditional Chinese Medicine concepts. This is not medical advice, diagnosis, or treatment. Always consult a qualified healthcare professional for medical concerns.",
+    zh: "Qiorazen 提供基于中医养生理念的健康生活方式建议。本平台不提供医疗诊断或治疗建议。如有健康问题，请咨询专业医疗人员。",
   },
   footer: {
     en: "This information is for educational purposes only.",
