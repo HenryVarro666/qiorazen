@@ -22,7 +22,7 @@ export default function LandingPage() {
               {t("common.login")}
             </Link>
             <Link
-              href="#pricing"
+              href="#how-it-works"
               className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
             >
               {t("common.learnMore")}
@@ -55,7 +55,7 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works — 3 steps with numbers */}
-      <section className="px-4 py-20">
+      <section id="how-it-works" className="px-4 py-20">
         <h2 className="text-center text-2xl font-bold sm:text-3xl">
           {t("common.appName")} — How It Works
         </h2>
