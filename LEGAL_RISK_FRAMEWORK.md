@@ -9,6 +9,8 @@
 >
 > **"我们提供基于传统养生理念的 AI 辅助健康生活方式建议，而非医疗服务。"**
 
+你不是在卖"医疗服务"，你是在卖 **"健康认知 + 生活方式优化"**。
+
 ---
 
 ## 1. 风险评级：当前状态审计
@@ -24,159 +26,430 @@
 | 产品文案去医疗化 | ✅ 已实施 | `messages/en.json`, `messages/zh.json` |
 | 数据存储仅限美国 | ✅ 已设计 | Supabase US region |
 
-### 未实施 ❌（上线前必须完成）
+### 未实施 ❌（按阶段完成）
 
-| 防护层 | 优先级 | 说明 |
-|-------|--------|------|
-| 注册前强制同意免责声明 | 🔴 P0 | 用户必须勾选 3 个复选框才能使用 |
-| 每次咨询前弹窗确认 | 🔴 P0 | "Is this an emergency? → Call 911" |
-| Terms of Service 页面 | 🔴 P0 | 法律基础 |
-| Privacy Policy 页面 | 🔴 P0 | 数据合规基础 |
-| 医生合同（Independent Contractor） | 🔴 P0 | 明确不提供医疗服务 |
-| 回复自动附加免责声明 | 🟡 P1 | 每条 AI+医生回复底部 |
-| 内容防火墙（禁止输出清单） | 🟡 P1 | 扩展 guardrails |
-| LLC 注册 | 🟡 P1 | 隔离个人责任 |
-| 同意记录审计日志 | 🟢 P2 | consent_records 表已设计 |
-| 数据删除请求流程 | 🟢 P2 | GDPR/CCPA 合规 |
-
----
-
-## 2. 三层免责声明体系
-
-### Layer 1: 注册/首次使用前（最关键）
-
-用户必须逐一勾选以下 3 个复选框，缺一不可：
-
-```
-☐ I understand that Qiorazen is NOT a medical service. 
-  It does not diagnose, treat, cure, or prevent any disease or medical condition.
-  我理解 Qiorazen 不是医疗服务，不提供疾病诊断、治疗、药方或预防。
-
-☐ I understand that the wellness insights provided are NOT a substitute 
-  for professional medical advice from a licensed physician.
-  我理解本平台提供的养生建议不能替代持证医生的专业医疗建议。
-
-☐ I agree that I am using this service for educational and lifestyle 
-  wellness purposes only, and I assume full responsibility for my health decisions.
-  我同意仅将本服务用于教育和生活方式养生目的，并对自己的健康决策承担全部责任。
-```
-
-**技术实现**：`consent_records` 表记录每个用户的同意时间戳、IP、浏览器。
-
-### Layer 2: 每次提交咨询前
-
-弹窗确认（不可跳过）：
-
-```
-⚠️ Before you continue:
-
-Are you experiencing any of the following?
-- Chest pain or difficulty breathing
-- Severe bleeding or injury
-- Thoughts of self-harm or suicide
-- Loss of consciousness or seizures
-- Any other medical emergency
-
-→ If YES: Please call 911 immediately or go to your nearest emergency room.
-
-→ If NO: [Continue to submit your question]
-
-Reminder: Qiorazen provides lifestyle wellness guidance only. 
-We do not diagnose or treat medical conditions.
-```
-
-### Layer 3: 每条回复自动附加
-
-所有 AI 生成 + 医生审核的回复底部自动附加：
-
-```
-─────────────────────────
-This is general wellness and lifestyle guidance based on Traditional Chinese Medicine 
-concepts. It is provided for educational purposes only and is NOT medical advice, 
-diagnosis, or treatment. Always consult a licensed healthcare professional for 
-medical concerns. If you are experiencing a medical emergency, call 911.
-─────────────────────────
-```
+| 防护层 | 阶段 | 说明 |
+|-------|------|------|
+| Terms of Service 页面 | 🔴 上线前 | 见第 4 节 |
+| Privacy Policy 页面 | 🔴 上线前 | 见第 5 节 |
+| 注册前强制同意 3 个复选框 | 🔴 上线前 | 见第 2 节 |
+| 每次咨询前弹窗确认 | 🟡 付费上线前 | 见第 2 节 |
+| 回复自动附加免责声明 | 🟡 付费上线前 | 每条回复底部 |
+| 医生合同 | 🟡 付费上线前 | 见第 6 节 |
+| 禁用词扩展 | 🟡 付费上线前 | 见第 8 节 |
+| LLC 注册 | 🟢 规模化前 | 见第 10 节 |
+| Healthcare attorney 审核 | 🟢 规模化前 | $2,000-5,000 |
 
 ---
 
-## 3. 内容防火墙：禁止 vs 允许
+## 2. 三层免责声明（直接可用）
 
-### 绝对禁止输出 ❌
+### Layer 1: 首页底部（短版）
 
-| 类别 | 示例 | 为什么禁止 |
+```
+Disclaimer: This platform provides wellness and lifestyle guidance based on 
+traditional practices. It does NOT provide medical advice, diagnosis, or treatment. 
+Always consult a licensed healthcare provider for medical concerns.
+```
+
+> 当前已实施在 `disclaimers.ts` 的 banner 字段。
+
+### Layer 2: 注册时强制勾选（标准版）
+
+用户必须逐一勾选，缺一不可：
+
+```
+By using this service, you acknowledge and agree that:
+
+☐ 1. The information provided on this platform is for general wellness 
+     and educational purposes only.
+
+☐ 2. This service does NOT provide medical advice, diagnosis, or treatment. 
+     The content and responses are not a substitute for professional medical 
+     care from a licensed physician.
+
+☐ 3. If you are experiencing a medical emergency, you should immediately 
+     call 911 or seek emergency medical attention.
+
+☐ 4. Any lifestyle or wellness suggestions are based on general traditional 
+     practices and may not be suitable for your specific situation.
+
+☐ 5. You assume full responsibility for how you use the information provided.
+```
+
+### Layer 3: 每次咨询前弹窗（强制）
+
+```
+Before continuing:
+
+• This is NOT a medical consultation.
+• We do NOT diagnose or treat diseases.
+• If you have severe or urgent symptoms, please seek immediate medical care.
+
+Do you agree to proceed?
+[Agree] [Cancel]
+```
+
+### Layer 4: 每条回复底部（自动附加）
+
+```
+─────────────────────────
+This is general wellness and lifestyle guidance based on traditional practices. 
+It is for educational purposes only and is NOT medical advice, diagnosis, or treatment. 
+Always consult a licensed healthcare professional for medical concerns.
+─────────────────────────
+```
+
+---
+
+## 3. 风险分级模型（每个功能必须过这个表）
+
+### 🟢 低风险（推荐先做）
+
+不涉及具体个人诊断，偏"内容+建议"。
+
+| 功能 | 风险 | 说明 |
+|------|------|------|
+| AI 问卷体质分析 | 🟢 | 传统分类，非疾病诊断 |
+| "你可能属于偏寒体质" | 🟢 | 传统体系描述 |
+| 饮食建议（少吃冷饮） | 🟢 | 生活方式建议 |
+| 作息建议（早睡早起） | 🟢 | 生活习惯 |
+| 运动建议（适度散步） | 🟢 | 生活方式 |
+| 季节养生提示 | 🟢 | 教育信息 |
+
+**→ V1 只做这个层级。**
+
+### 🟡 中风险（当前模式，需要强防护）
+
+有"人"参与，有个性化建议。
+
+| 功能 | 风险 | 必须的防护 |
 |------|------|-----------|
-| 疾病诊断 | "You have diabetes" / "这是糖尿病" | 构成非法行医 |
-| 具体药物/剂量 | "Take 500mg of metformin" / "吃二甲双胍" | 构成处方行为 |
-| 替代医生建议 | "You don't need to see a doctor" | 延误治疗的法律责任 |
-| 检查/检验建议 | "You should get a blood test" | 暗示诊断行为 |
-| 特定疾病关联 | "Your constitution causes heart disease" | 因果声明 = 诊断 |
-| 停药建议 | "You can stop taking your medication" | 直接医疗干预 |
-| 怀孕/儿童建议 | 任何针对孕妇或儿童的具体建议 | 高风险群体 |
+| 医生回复用户问题 | 🟡 | 强免责声明 + 去医疗术语 + 平台署名 |
+| 看舌头照片给建议 | 🟡 | 仅说"传统角度的观察"，不说"诊断" |
+| 个性化调理建议 | 🟡 | 只讲"调理"不讲"治疗" |
+
+**→ 风险点：很容易被认定为医疗行为。**
+**→ 解决：强免责 + 去术语 + 平台作为内容整理方。**
+
+### 🔴 高风险（绝对禁止）
+
+明确的医疗行为，一旦发生可能涉及非法行医、医疗责任诉讼。
+
+| 功能 | 风险 | 后果 |
+|------|------|------|
+| "你是XX病" | 🔴 | 非法行医 |
+| 推荐具体中药方/剂量 | 🔴 | 处方行为 |
+| "你不用去看医生" | 🔴 | 延误治疗责任 |
+| 慢病管理建议 | 🔴 | 医疗服务认定 |
+| 停药建议 | 🔴 | 直接医疗干预 |
+| 孕妇/儿童具体建议 | 🔴 | 高风险群体 |
+
+---
+
+## 4. Terms of Service（直接可上线版）
+
+放在 `/terms` 页面。
+
+```
+TERMS OF SERVICE
+
+Last updated: [Date]
+
+1. Nature of Service
+   Qiorazen provides AI-assisted wellness and lifestyle guidance based on 
+   traditional health practices. It does not provide medical services.
+
+2. No Medical Advice
+   The information provided is not intended to diagnose, treat, cure, or 
+   prevent any disease. You should consult a licensed healthcare provider 
+   for medical concerns.
+
+3. User Responsibility
+   You agree that you are solely responsible for how you interpret and 
+   use the information provided.
+
+4. No Doctor-Patient Relationship
+   Use of this platform does not establish a doctor-patient relationship.
+
+5. Limitation of Liability
+   To the maximum extent permitted by law, the platform and its affiliates 
+   shall not be liable for any damages resulting from the use of this service. 
+   Maximum liability shall not exceed the amount paid for the specific service.
+
+6. Indemnification
+   You agree to indemnify and hold harmless the platform from any claims 
+   arising from your use of the service.
+
+7. Governing Law
+   These Terms shall be governed by the laws of the State of Delaware, 
+   United States.
+
+8. Dispute Resolution
+   Any disputes shall be resolved through binding arbitration.
+
+9. Modifications
+   We reserve the right to update these terms at any time. Continued use 
+   of the service constitutes acceptance of updated terms.
+```
+
+---
+
+## 5. Privacy Policy（直接可上线版）
+
+放在 `/privacy` 页面。
+
+```
+PRIVACY POLICY
+
+Last updated: [Date]
+
+1. Information We Collect
+   - Account information (email, display name)
+   - Wellness screening questionnaire responses
+   - Constitution assessment results
+   - Questions submitted for wellness guidance
+   - Tongue images (if voluntarily uploaded)
+   - Usage data (pages visited, features used)
+
+2. How We Use Your Data
+   - To provide personalized wellness insights
+   - To facilitate wellness advisor review
+   - To improve our services (anonymized data only)
+   - We NEVER sell personal data to third parties
+
+3. Data Storage & Security
+   - All data stored on U.S.-based servers
+   - Encrypted at rest and in transit (TLS 1.2+)
+   - Access restricted to authorized personnel only
+
+4. Tongue Images
+   - Stored in encrypted private storage
+   - Accessible only to your assigned wellness advisor
+   - Auto-deleted after 90 days (user configurable)
+   - Never shared externally or used for facial recognition
+
+5. Your Rights
+   - Access: Request a copy of all your data
+   - Deletion: Request complete deletion of your account and data
+   - Opt-out: Withdraw consent for data processing at any time
+   - Contact: hello@qiorazen.com
+
+6. Not HIPAA Covered
+   Qiorazen is a wellness platform, not a healthcare provider. We implement 
+   strong security practices but do not claim HIPAA compliance.
+
+7. Breach Notification
+   In the event of unauthorized access to health-related data, we will 
+   notify affected users within 60 days per FTC Health Breach Notification Rule.
+
+8. California Residents (CCPA)
+   California residents have additional rights including the right to know, 
+   delete, and opt-out. We do not sell personal data.
+
+9. Changes
+   We may update this policy periodically. Material changes will be notified 
+   via email or platform notice.
+```
+
+---
+
+## 6. 医生合同（Independent Wellness Consultant Agreement）
+
+最关键的风险隔离文件。
+
+```
+INDEPENDENT WELLNESS CONSULTANT AGREEMENT
+
+This Agreement is made between:
+Qiorazen LLC ("Company") and [Consultant Name] ("Consultant")
+
+1. ROLE
+   Consultant provides general wellness and lifestyle guidance based on 
+   traditional practices. Consultant reviews AI-generated wellness drafts 
+   and may add lifestyle commentary.
+
+2. NO MEDICAL SERVICES
+   Consultant agrees that they are NOT providing:
+   - Medical advice, diagnosis, or treatment
+   - Prescription of medications or supplements with specific dosages
+   - Advice to discontinue or modify medical treatment
+   - Assessment of specific diseases or medical conditions
+
+3. NO DOCTOR-PATIENT RELATIONSHIP
+   No doctor-patient or provider-patient relationship is created between 
+   Consultant and any user of the Platform.
+
+4. INDEPENDENT CONTRACTOR
+   Consultant is an independent contractor, not an employee.
+
+5. CONTENT GUIDELINES
+   Consultant agrees to:
+   - Review AI-generated drafts only (not write from scratch)
+   - Use only wellness and lifestyle language
+   - Flag and escalate any user presenting emergency symptoms
+   - Never use the words: diagnose, treat, cure, prescribe, patient
+
+6. CONTENT REVIEW
+   All Consultant outputs are subject to automated compliance review 
+   before delivery to users. Company reserves the right to modify or 
+   block non-compliant content.
+
+7. PUBLIC IDENTITY
+   Consultant shall be referred to as "Wellness Advisor" or "TCM Wellness 
+   Consultant" on the platform. The title "Doctor" or "Dr." shall not be 
+   used in user-facing content.
+
+8. INDEMNIFICATION
+   Consultant indemnifies Company against any claims arising from 
+   Consultant's deviation from the approved scope of services.
+
+9. CONFIDENTIALITY
+   Consultant agrees not to disclose, download, or store user information 
+   outside the platform.
+
+10. COMPENSATION
+    [Define payment model: per-case review, monthly retainer, etc.]
+
+11. TERMINATION
+    Either party may terminate with 14 days written notice.
+
+Signed: _________________ Date: _________________
+```
+
+---
+
+## 7. 最优合规架构（核心设计）
+
+### ✅ 正确架构（平台作为中间层）
+
+```
+用户提问
+  → AI 生成完整草稿（自动化，美国服务器）
+  → 平台整理为标准格式
+  → Wellness Advisor 审核确认（Portal，只读+一键确认）
+  → 平台经 guardrails 净化
+  → 输出署名 "Qiorazen Wellness Insight"
+  → 用户收到
+```
+
+**关键点**：
+- 用户看到的是 **"Qiorazen"** 的回复，不是某个医生的回复
+- Advisor 是"内容审核者"，不是直接服务提供者
+- 平台是"信息整理方"，不是"医疗中介"
+
+### ❌ 错误架构（绝对不能这样）
+
+```
+用户 ↔ 医生（直接互动）
+```
+
+这会被认定为远程医疗（Telemedicine），触发执照和监管问题。
+
+---
+
+## 8. 内容防火墙
+
+### 禁止输出 ❌
+
+| 类别 | 示例 | 为什么 |
+|------|------|--------|
+| 疾病诊断 | "You have diabetes" | 非法行医 |
+| 具体药物/剂量 | "Take 500mg metformin" | 处方行为 |
+| 替代医生 | "You don't need to see a doctor" | 延误治疗责任 |
+| 检查建议 | "Get a blood test" | 暗示诊断 |
+| 停药建议 | "Stop taking your medication" | 直接干预 |
+| 孕妇/儿童 | 针对高风险群体的具体建议 | 高法律风险 |
 
 ### 允许输出 ✅
 
-| 类别 | 示例 | 合规依据 |
-|------|------|---------|
-| 体质分析 | "Your constitution tends toward Qi Deficiency" | 传统体系的分类，非疾病诊断 |
-| 饮食习惯建议 | "Warm, cooked foods may feel better for your type" | 生活方式建议 |
-| 作息建议 | "Sleeping before 11pm supports your constitution" | 生活习惯 |
-| 运动建议 | "Gentle walking after meals suits your pattern" | 生活方式 |
-| 情绪调理 | "Deep breathing may help with your tendency toward anxiety" | 自我关怀 |
-| 季节养生 | "Your type may feel less comfortable in winter" | 教育信息 |
-| 茶饮/食疗方向 | "Ginger tea is traditionally associated with warmth" | 传统知识分享 |
+| 类别 | 示例 | 依据 |
+|------|------|------|
+| 体质分析 | "Your constitution tends toward Qi Deficiency" | 传统分类 |
+| 饮食方向 | "Warm, cooked foods may suit your type" | 生活方式 |
+| 作息建议 | "Sleeping before 11pm supports your pattern" | 生活习惯 |
+| 运动建议 | "Gentle walking after meals suits your type" | 生活方式 |
+| 情绪调理 | "Deep breathing may help with tension" | 自我关怀 |
+| 茶饮方向 | "Ginger tea is traditionally associated with warmth" | 传统知识 |
 
 ### 灰色地带（需要特别措辞）
 
-| 用户问 | ❌ 不能这样回答 | ✅ 应该这样回答 |
-|--------|--------------|--------------|
-| "我经常失眠怎么办？" | "You have insomnia, take melatonin" | "From a TCM wellness perspective, your Yin Deficiency pattern is traditionally associated with sleep challenges. You might consider calming activities before bed and staying hydrated. If sleep difficulties persist, please consult a healthcare professional." |
-| "我血压高" | "Your hypertension needs treatment" | "We're not able to provide guidance on specific medical conditions like blood pressure. We recommend consulting your doctor. In the meantime, general wellness practices like stress management and balanced eating may support overall wellbeing." |
-| "需要吃什么药？" | 任何药物名称 | "We don't recommend medications. For any medication questions, please consult your physician or pharmacist. We can share lifestyle and dietary perspectives based on your constitution type." |
+| 用户问 | ❌ 不能这样答 | ✅ 应该这样答 |
+|--------|-------------|-------------|
+| "我经常失眠" | "You have insomnia, take melatonin" | "From a TCM wellness perspective, your pattern is traditionally associated with sleep challenges. Calming activities before bed and staying hydrated may help. If difficulties persist, please consult a healthcare professional." |
+| "我血压高" | "Your hypertension needs treatment" | "We're not able to provide guidance on specific medical conditions. We recommend consulting your doctor. General wellness practices like stress management may support overall wellbeing." |
+| "需要吃什么药？" | 任何药物名称 | "We don't recommend medications. For medication questions, please consult your physician. We can share lifestyle perspectives based on your constitution type." |
 
 ---
 
-## 4. 禁用词扩展清单
+## 9. 禁用词清单
 
-当前 `guardrails.ts` 有 16 个正则。建议扩展以下禁用词：
+### 当前已实施（`guardrails.ts`，16 个正则）
 
-### 新增禁用词（英文）
+diagnose, treat, cure, prevent, prescribe, medication, disease, disorder, illness, pathology, symptom, condition, medical, clinical, therapy, therapeutic
 
+### 需要扩展
+
+**英文**：
 ```
-patient → client / user
-doctor → wellness advisor / consultant
+patient → user / client
+doctor → wellness advisor
 clinic → platform
 prescription → suggestion
-dose / dosage → (block entirely)
-drug → (block entirely)
-side effect → (block entirely)
-contraindication → (block entirely)
-prognosis → outlook / tendency
-chronic → ongoing / long-term
-acute → immediate / sudden
-surgery → (block entirely)
-hospital → healthcare facility (in redirect context only)
+dose / dosage → (block)
+drug → (block)
+side effect → (block)
+contraindication → (block)
+prognosis → outlook
+surgery → (block)
+hospital → (only in "go to hospital" emergency redirect)
 ```
 
-### 新增禁用词（中文）
-
+**中文**：
 ```
 患者 → 用户
 医生/大夫 → 养生顾问
 处方/药方 → 建议
-剂量/用量 → （完全禁止）
-西药/中药 + 具体药名 → （完全禁止）
-副作用 → （完全禁止）
-手术 → （完全禁止）
-化验/检查 → （完全禁止）
-确诊 → （完全禁止）
+剂量/用量 → （禁止）
+具体药名 → （禁止）
+副作用 → （禁止）
+手术 → （禁止）
+化验/检查 → （禁止）
+确诊 → （禁止）
 ```
 
 ---
 
-## 5. 医生（Wellness Advisor）合同要点
+## 10. 支付措辞合规
 
-### 对外称呼
+| ❌ 不用 | ✅ 使用 |
+|--------|--------|
+| Medical consultation | Wellness insight session |
+| Doctor's fee | Advisor review |
+| Treatment plan | Wellness guidance plan |
+| Unlimited consultations | Ongoing personalized guidance |
+| Health assessment | Wellness screening |
+| Consultation count | Membership / priority access |
+
+**Stripe 产品名称**：
+- `Qiorazen Starter Session`（不是 Medical Consultation）
+- `Qiorazen Core Wellness Membership`（不是 Healthcare Subscription）
+- `Qiorazen Premium Wellness Advisory`（不是 Medical Advisory）
+
+---
+
+## 11. 跨境风险隔离
+
+### 问题：中国 Wellness Advisor → 美国用户
+
+| 风险 | 规避 |
+|------|------|
+| 远程医疗认定 | Advisor 不直接接触用户，平台是内容整理方 |
+| 无执照行医 | Advisor 是 "wellness content reviewer"，不是 provider |
+| 医疗责任 | 合同明确不承担医疗责任 |
+| 数据跨境 | 数据在美国，Advisor 通过 Portal 查看不下载 |
+
+### Advisor 对外称呼
 
 | ❌ 不用 | ✅ 使用 |
 |--------|--------|
@@ -185,314 +458,98 @@ hospital → healthcare facility (in redirect context only)
 | 中医师 | 中医养生顾问 |
 | 诊断 | 体质分析 / 养生建议 |
 
-### Independent Contractor Agreement 核心条款
+---
 
-```
-1. NATURE OF SERVICES
-   Contractor provides general wellness and lifestyle guidance based on 
-   Traditional Chinese Medicine concepts. Contractor does NOT provide:
-   - Medical diagnosis
-   - Medical treatment
-   - Prescription of medications
-   - Advice to discontinue medical treatment
+## 12. LLC 注册
 
-2. NO DOCTOR-PATIENT RELATIONSHIP
-   No doctor-patient or provider-patient relationship is created between 
-   Contractor and any user of the Platform.
+- **为什么**：隔离个人资产，即使被起诉个人财产受保护
+- **州**：Delaware（最灵活）或 Wyoming（最便宜）
+- **类型**：Single-member LLC
+- **名称**：Qiorazen LLC
+- **费用**：$100-300/年
+- **时间**：1-2 周
+- **服务**：Northwest / ZenBusiness / LegalZoom
 
-3. SCOPE LIMITATIONS
-   Contractor agrees to:
-   - Review AI-generated wellness drafts only
-   - Add only lifestyle and wellness commentary
-   - Flag and escalate any user presenting emergency symptoms
-   - Never recommend specific medications or dosages
-   - Never diagnose or claim to diagnose any medical condition
+### 保险
 
-4. INDEMNIFICATION
-   Contractor indemnifies Platform against any claims arising from 
-   Contractor's deviation from the approved scope of services.
-
-5. CONTENT REVIEW
-   All Contractor outputs are subject to automated compliance review 
-   (guardrails) before delivery to users. Platform reserves the right 
-   to modify or block non-compliant content.
-
-6. LICENSING DISCLAIMER
-   Contractor acknowledges that they are not licensed to practice medicine 
-   in any U.S. state and are not providing medical services through the Platform.
-```
+- General Liability: $500-1000/年
+- Errors & Omissions (E&O): $500-1500/年
+- **不需要** Medical Malpractice（因为不是医疗服务）
 
 ---
 
-## 6. Terms of Service 核心条款
-
-### 关键条款（必须包含）
-
-```
-1. SERVICE DESCRIPTION
-   Qiorazen is an AI-powered wellness insight platform that provides 
-   lifestyle guidance inspired by Traditional Chinese Medicine (TCM) concepts. 
-   Qiorazen is NOT a medical service, telemedicine platform, or healthcare provider.
-
-2. NO MEDICAL ADVICE
-   Nothing on this platform constitutes medical advice, diagnosis, or treatment. 
-   All content is for educational and informational purposes only.
-
-3. NO PROVIDER-PATIENT RELATIONSHIP
-   Use of Qiorazen does not create a doctor-patient, provider-patient, or any 
-   other healthcare relationship between you and Qiorazen or its consultants.
-
-4. USER RESPONSIBILITY
-   You are solely responsible for your health decisions. You agree to consult 
-   a licensed healthcare professional for any medical concerns, symptoms, 
-   or conditions.
-
-5. EMERGENCY DISCLAIMER
-   Qiorazen is NOT an emergency service. If you are experiencing a medical 
-   emergency, call 911 (or your local emergency number) immediately.
-
-6. CONSULTANT QUALIFICATIONS
-   Wellness consultants on the platform provide insights based on traditional 
-   wellness concepts. They may not hold medical licenses in your jurisdiction 
-   and are not acting as licensed healthcare providers.
-
-7. LIMITATION OF LIABILITY
-   Qiorazen shall not be liable for any harm, injury, or adverse outcome 
-   resulting from:
-   (a) Reliance on wellness insights provided through the platform
-   (b) Delayed seeking of medical care
-   (c) Any health decisions made based on platform content
-   Maximum liability shall not exceed the amount paid for the specific service.
-
-8. ARBITRATION
-   Any disputes shall be resolved through binding arbitration in [State], 
-   not through court proceedings.
-
-9. CONTENT OWNERSHIP
-   Qiorazen retains the right to use anonymized, de-identified data for 
-   platform improvement. Personal health data will never be sold to third parties.
-
-10. TERMINATION
-    Qiorazen reserves the right to terminate service to any user who:
-    - Uses the platform for emergency medical situations
-    - Repeatedly seeks medical diagnosis or treatment
-    - Violates these Terms of Service
-```
-
----
-
-## 7. Privacy Policy 核心条款
-
-```
-1. DATA WE COLLECT
-   - Account information (email, name)
-   - Screening questionnaire responses
-   - Constitution assessment results
-   - Questions submitted for wellness guidance
-   - Tongue images (if voluntarily uploaded)
-   - Usage data and analytics
-
-2. HOW WE USE YOUR DATA
-   - To provide personalized wellness insights
-   - To facilitate wellness advisor review
-   - To improve our AI models (anonymized only, with consent)
-   - We NEVER sell personal health data to third parties
-
-3. DATA STORAGE
-   - All data stored on U.S.-based servers
-   - Encrypted at rest and in transit
-   - No data transferred to international servers
-
-4. YOUR RIGHTS
-   - Access: Request a copy of all your data
-   - Deletion: Request complete deletion of your account and data
-   - Portability: Export your data in standard format
-   - Opt-out: Withdraw consent for data processing at any time
-
-5. TONGUE IMAGES
-   - Stored in encrypted private storage
-   - Accessible only to your assigned wellness advisor
-   - Auto-deleted after 90 days (configurable)
-   - Never used for facial recognition or shared externally
-
-6. BREACH NOTIFICATION
-   In the event of unauthorized access to health-related data, we will 
-   notify affected users within 60 days per FTC Health Breach Notification Rule.
-
-7. NOT HIPAA COVERED
-   Qiorazen is a wellness platform, not a covered entity under HIPAA. 
-   We implement strong security practices but do not claim HIPAA compliance.
-
-8. CALIFORNIA RESIDENTS (CCPA)
-   California residents have additional rights under CCPA including the 
-   right to know, delete, and opt-out of data sale (we do not sell data).
-```
-
----
-
-## 8. 跨境风险隔离
-
-### 问题：中国医生 → 美国用户
-
-| 风险 | 规避措施 |
-|------|---------|
-| 被认定为远程医疗 | 医生从不直接接触用户。平台作为"内容整理方" |
-| 无执照行医 | 医生是 "wellness content reviewer"，不是 provider |
-| 医疗责任 | 合同明确：不承担医疗责任 |
-| 数据跨境 | 所有数据在美国。医生通过 portal 访问，不下载 |
-
-### 信息流（合规设计）
-
-```
-用户提问
-  → AI 生成完整草稿（美国服务器）
-  → 医生通过 Portal 查看（只读 + 审核）
-  → 医生点击"确认" 或 添加一句备注
-  → 平台将最终内容经 guardrails 净化
-  → 用户收到 "Qiorazen Wellness Insight"（不是 "Dr. X's response"）
-```
-
-**关键**：用户看到的是 "Qiorazen" 的回复，不是某个医生的回复。医生是内容审核者，不是直接服务提供者。
-
----
-
-## 9. 支付措辞合规
-
-| ❌ 不用 | ✅ 使用 |
-|--------|--------|
-| Medical consultation fee | Wellness insight session |
-| Doctor's fee | Advisor review |
-| Treatment plan | Wellness guidance plan |
-| Unlimited consultations | Ongoing personalized guidance |
-| Health assessment | Wellness screening |
-
-Stripe 产品名称建议：
-- `Qiorazen Starter Session` (not "Medical Consultation")
-- `Qiorazen Core Wellness Membership` (not "Healthcare Subscription")
-- `Qiorazen Premium Wellness Advisory` (not "Medical Advisory")
-
----
-
-## 10. 紧急症状拦截扩展
+## 13. 紧急症状拦截扩展
 
 当前 `symptom-detector.ts` 有 27 个模式。建议扩展：
 
-### 新增检测模式
-
 ```
-英文:
-- blood in stool/urine
-- sudden severe headache
-- numbness on one side
-- slurred speech
-- severe abdominal pain
-- high fever (over 103°F / 39.4°C)
-- pregnancy complications
-- infant/baby/child + any symptom
+英文新增:
+blood in stool/urine, sudden severe headache, numbness on one side,
+slurred speech, severe abdominal pain, high fever (103°F+),
+pregnancy + any symptom, infant/baby/child + any symptom
 
-中文:
-- 便血/尿血
-- 突发剧烈头痛
-- 一侧麻木
-- 言语不清
-- 剧烈腹痛
-- 高烧（39.4°C以上）
-- 怀孕 + 任何不适
-- 婴儿/宝宝/孩子 + 任何症状
+中文新增:
+便血/尿血, 突发剧烈头痛, 一侧麻木, 言语不清,
+剧烈腹痛, 高烧(39.4°C+), 怀孕+不适, 婴儿/宝宝/孩子+症状
 ```
 
-### 拦截行为
-
-检测到以上任何内容时：
-1. **立即阻止** AI 处理
-2. 显示紧急转介页面（911 / 988 / 当地急诊）
-3. **记录日志**（保护平台免责）
-4. 不退款（ToS 中明确）
+检测到后：阻止 AI 处理 → 显示 911/988 → 记录日志。
 
 ---
 
-## 11. LLC 注册建议
+## 14. 立刻要做的 3 件事
 
-### 为什么需要
+### 1. 网站文案最终检查
 
-- 隔离个人资产和公司负债
-- 即使被起诉，个人财产受保护
-- 美国运营任何有责任风险的业务的标准做法
+确认所有页面没有以下词汇：
+- ❌ diagnosis / treatment / doctor / patient / prescription
+- ✅ wellness insight / lifestyle guidance / wellness advisor
 
-### 推荐
+### 2. 产品措辞调整
 
-- **州**: Delaware（最灵活）或 Wyoming（最便宜）
-- **类型**: Single-member LLC
-- **名称**: Qiorazen LLC
-- **注册代理**: 使用 Registered Agent 服务（如 Northwest, ZenBusiness）
-- **费用**: $100-300/年
-- **时间**: 1-2 周
+| 当前 | 改为 |
+|------|------|
+| "问医生" | "Get wellness insights" |
+| "医生回复" | "Advisor-reviewed guidance" |
+| "咨询" | "Wellness session" |
+| "诊断" | "Constitution analysis" |
 
-### 需要的保险
+### 3. 收费逻辑
 
-- **General Liability Insurance**: $500-1000/年
-- **Errors & Omissions (E&O)**: $500-1500/年
-- **不需要** Medical Malpractice Insurance（因为不是医疗服务）
-
----
-
-## 12. 实施优先级
-
-### 🔴 第一阶段：现在就做（上线前）
-
-- [ ] 更新 disclaimers.ts — 已完成品牌名更新
-- [ ] 创建 Terms of Service 页面 (`/terms`)
-- [ ] 创建 Privacy Policy 页面 (`/privacy`)
-- [ ] 注册前强制 3 个同意复选框
-- [ ] 扩展 guardrails.ts 禁用词
-
-### 🟡 第二阶段：付费功能上线前
-
-- [ ] 每次咨询前弹窗确认
-- [ ] 回复自动附加免责声明
-- [ ] 医生 Independent Contractor Agreement
-- [ ] Stripe 产品名称合规化
-- [ ] 扩展 symptom-detector.ts
-
-### 🟢 第三阶段：规模化前
-
-- [ ] LLC 注册
-- [ ] General Liability + E&O 保险
-- [ ] Healthcare attorney 审核（$2,000-5,000）
-- [ ] 同意记录审计系统
-- [ ] 数据删除请求流程
-- [ ] CCPA 合规
+- ❌ 按"咨询次数"收费
+- ✅ 按 "membership / priority access" 收费
+- 当前定价已符合：Starter Session / Core Membership / Premium Advisory
 
 ---
 
-## 13. 已实施的技术防护总结
+## 15. 技术防护总结
 
-| 防护 | 文件 | 机制 |
-|------|------|------|
-| AI 输出净化 | `guardrails.ts` | 16 个正则替换禁用词 |
-| 系统提示词 | `prompts.ts` | 明确禁止医疗语言 |
-| 急救拦截 | `symptom-detector.ts` | 27 个中英文模式匹配 |
-| UI 免责 | `disclaimers.ts` | banner + footer 双层 |
-| 数据库同意记录 | `003_consent_records.sql` | 不可变追溯记录 |
-| RLS 数据隔离 | `006-007 migrations` | 用户只能看自己的数据 |
-| 医生访问限制 | `006 RLS policies` | 只能看待审核案例 |
+| 层 | 文件 | 机制 |
+|----|------|------|
+| 1 | `prompts.ts` | 系统提示词禁止医疗语言 |
+| 2 | `guardrails.ts` | 16 个正则替换禁用词 |
+| 3 | `symptom-detector.ts` | 27 个中英文急救拦截 |
+| 4 | `disclaimers.ts` | UI 免责声明 |
+| 5 | `consent_records` 表 | 不可变同意记录 |
+| 6 | RLS policies | 用户只看自己的数据 |
+| 7 | Portal 只读设计 | Advisor 不能下载数据 |
 
 ---
 
-## 14. 最终检查清单
+## 16. 最终检查清单
 
-在任何内容到达用户之前，必须通过以下检查：
+每条内容到达用户前必须通过：
 
 ```
-□ 1. 用户已同意免责声明（consent_records 有记录）
-□ 2. 用户问题已通过严重症状检测（symptom-detector）
-□ 3. AI 输出已通过禁用词扫描（guardrails）
-□ 4. 免责声明已附加在回复底部
-□ 5. 回复中没有：诊断、药物、剂量、停药建议
-□ 6. 回复中没有使用"doctor/医生"称呼
-□ 7. 回复署名是"Qiorazen"而非某个医生的名字
+□ 用户已同意免责声明（consent_records 有记录）
+□ 用户问题已通过严重症状检测
+□ AI 输出已通过禁用词扫描
+□ 免责声明已附加在回复底部
+□ 回复中没有：诊断、药物、剂量、停药建议
+□ 回复中没有使用"doctor/医生"称呼
+□ 回复署名是"Qiorazen"而非某个人的名字
 ```
 
 ---
 
-*本文档为内部参考文档，不构成法律建议。正式上线前建议请 healthcare attorney 审核所有法律文本。*
+*本文档为内部参考。正式上线前建议请 healthcare attorney 审核（$2,000-5,000）。*
