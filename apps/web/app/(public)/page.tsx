@@ -22,10 +22,10 @@ export default function LandingPage() {
               {t("common.login")}
             </Link>
             <Link
-              href="/screening"
+              href="#pricing"
               className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
             >
-              {t("landing.hero.cta")}
+              {t("common.learnMore")}
             </Link>
           </nav>
         </div>
@@ -124,7 +124,7 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing */}
-      <section className="px-4 py-20">
+      <section id="pricing" className="px-4 py-20">
         <h2 className="text-center text-3xl font-bold">
           {t("landing.pricing.title")}
         </h2>
