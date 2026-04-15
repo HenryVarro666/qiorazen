@@ -42,6 +42,18 @@ const BANNED_PATTERNS: [RegExp, string][] = [
   [/\bcontraindication[ds]?\b/gi, "[please consult a healthcare professional]"],
   [/\bsurgery\b/gi, "[please consult a healthcare professional]"],
 
+  // Organ-level diagnostic claims (high risk in US law)
+  [/your\s*(liver|kidney|spleen|heart|lung|stomach)\s*(is|are)\b/gi, "from a traditional wellness perspective, this pattern"],
+  [/\b(liver|kidney|spleen)\s*(deficien|weak|problem|damage|failure)/gi, "a traditional constitutional pattern"],
+  [/\b(inflammation|infect(ed|ion))\b/gi, "a traditional imbalance pattern"],
+  [/you\s*(have|are|suffer)/gi, "traditional perspectives suggest"],
+
+  // Chinese organ-level claims
+  [/你的?(肝|肾|脾|心|肺|胃)(不好|有问题|虚|弱|火旺|湿)/g, "传统养生角度认为，这种体质模式"],
+  [/肝火/g, "偏热的体质倾向"],
+  [/肾虚/g, "偏寒的体质倾向"],
+  [/脾虚/g, "消化方面的体质倾向"],
+
   // Chinese medical terms
   [/患者/g, "用户"],
   [/医生|大夫/g, "养生顾问"],
