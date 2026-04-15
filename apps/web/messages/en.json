@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Qiora",
+    "appName": "Qiorazen",
     "tagline": "AI-Powered Wellness Insights",
     "login": "Log In",
     "signup": "Sign Up",
@@ -160,7 +160,7 @@
     }
   },
   "disclaimer": {
-    "banner": "Qiora provides wellness and lifestyle insights based on Traditional Chinese Medicine concepts. This is not medical advice, diagnosis, or treatment. Always consult a qualified healthcare professional for medical concerns.",
+    "banner": "Qiorazen provides wellness and lifestyle insights based on Traditional Chinese Medicine concepts. This is not medical advice, diagnosis, or treatment. Always consult a qualified healthcare professional for medical concerns.",
     "footer": "This information is for educational purposes only.",
     "emergency": "You've described something that may require immediate medical attention. If you're experiencing a medical emergency, please call 911. For mental health crises, call 988."
   },
