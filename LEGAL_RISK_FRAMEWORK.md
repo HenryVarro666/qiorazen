@@ -319,7 +319,57 @@ Signed: _________________ Date: _________________
 
 ---
 
-## 7. 最优合规架构（核心设计）
+## 7. 图像分析合规（舌象/眼白/皮肤）
+
+### 核心风险
+
+图像分析在美国法律中极易被认定为"诊断行为"（diagnosis）。即使说是"中医"，法律上仍属于 medical assessment。
+
+### 合规判断标准
+
+```
+用户看完会觉得"我身体出了什么问题" → ❌ 违法
+用户只觉得"我可以调整生活方式"     → ✅ 安全
+```
+
+### 舌象分析——禁止 vs 允许
+
+| ❌ 绝对不能说 | ✅ 安全说法 |
+|-------------|-----------|
+| "你这是湿气重" | "In traditional TCM literature, this coating pattern is often described as being associated with dampness-type constitutional tendencies" |
+| "你脾胃不好" | "Traditional perspectives sometimes associate this appearance with digestive comfort patterns" |
+| "有炎症/内热" | "Some traditional texts describe this coloration in the context of warmth-type tendencies" |
+| "你的肝有问题" | "From a traditional wellness perspective, this pattern is sometimes discussed in educational texts" |
+| "肾虚" | "Traditional literature describes this as a cooler constitutional tendency" |
+
+### 关键原则
+
+**不说"你怎么样"，只说"传统文献中这种现象通常如何被描述"。**
+
+主语从 "You have..." 变成 "Traditional texts describe..."——这个转换是合法与违法的分界线。
+
+### 技术实施
+
+已实施在以下文件中：
+- `prompts.ts` — TONGUE_ANALYSIS_PROMPT 强制使用 distancing language
+- `guardrails.ts` — 拦截 organ-level claims（"your liver", "肝火", "肾虚" 等）
+- `guardrails.ts` — 拦截 "you have/are/suffer" 句式
+
+### 上传前强制确认（必须）
+
+用户上传舌象/眼白/皮肤照片前必须确认：
+
+```
+This feature provides EDUCATIONAL observations based on traditional 
+tongue reading practices. It does NOT provide medical diagnosis, 
+health assessment, or disease detection.
+
+☐ I understand this is for educational and lifestyle wellness purposes only.
+```
+
+---
+
+## 8. 最优合规架构（核心设计）
 
 ### ✅ 正确架构（平台作为中间层）
 
@@ -348,7 +398,7 @@ Signed: _________________ Date: _________________
 
 ---
 
-## 8. 内容防火墙
+## 9. 内容防火墙
 
 ### 禁止输出 ❌
 
@@ -382,7 +432,7 @@ Signed: _________________ Date: _________________
 
 ---
 
-## 9. 禁用词清单
+## 10. 禁用词清单
 
 ### 当前已实施（`guardrails.ts`，16 个正则）
 
@@ -420,7 +470,7 @@ hospital → (only in "go to hospital" emergency redirect)
 
 ---
 
-## 10. 支付措辞合规
+## 11. 支付措辞合规
 
 | ❌ 不用 | ✅ 使用 |
 |--------|--------|
@@ -438,7 +488,7 @@ hospital → (only in "go to hospital" emergency redirect)
 
 ---
 
-## 11. 跨境风险隔离
+## 12. 跨境风险隔离
 
 ### 问题：中国 Wellness Advisor → 美国用户
 
@@ -460,7 +510,7 @@ hospital → (only in "go to hospital" emergency redirect)
 
 ---
 
-## 12. LLC 注册
+## 13. LLC 注册
 
 - **为什么**：隔离个人资产，即使被起诉个人财产受保护
 - **州**：Delaware（最灵活）或 Wyoming（最便宜）
@@ -478,7 +528,7 @@ hospital → (only in "go to hospital" emergency redirect)
 
 ---
 
-## 13. 紧急症状拦截扩展
+## 14. 紧急症状拦截扩展
 
 当前 `symptom-detector.ts` 有 27 个模式。建议扩展：
 
@@ -497,7 +547,7 @@ pregnancy + any symptom, infant/baby/child + any symptom
 
 ---
 
-## 14. 立刻要做的 3 件事
+## 15. 立刻要做的 3 件事
 
 ### 1. 网站文案最终检查
 
@@ -522,7 +572,7 @@ pregnancy + any symptom, infant/baby/child + any symptom
 
 ---
 
-## 15. 技术防护总结
+## 16. 技术防护总结
 
 | 层 | 文件 | 机制 |
 |----|------|------|
@@ -536,7 +586,7 @@ pregnancy + any symptom, infant/baby/child + any symptom
 
 ---
 
-## 16. 最终检查清单
+## 17. 最终检查清单
 
 每条内容到达用户前必须通过：
 
