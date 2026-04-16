@@ -14,6 +14,7 @@ interface ResultCardProps {
   constitutionResults: ConstitutionResult[];
   recommendations: Recommendations;
   locale: "en" | "zh";
+  sessionId: string | null;
   onRestart: () => void;
 }
 
@@ -23,6 +24,7 @@ export function ResultCard({
   constitutionResults,
   recommendations,
   locale,
+  sessionId,
   onRestart,
 }: ResultCardProps) {
   const t = useTranslations();
@@ -171,7 +173,7 @@ export function ResultCard({
               {t("screening.result.deeperCtaSub")}
             </p>
             <Link
-              href="/register"
+              href={`/login?redirect=${encodeURIComponent(`/insights/new${sessionId ? `?session=${sessionId}` : ""}`)}`}
               className="mt-4 inline-block rounded-lg bg-brand-600 px-8 py-3 text-sm font-medium text-white hover:bg-brand-700"
             >
               {locale === "zh" ? "立即解锁 — $49" : "Unlock Now — $49"}

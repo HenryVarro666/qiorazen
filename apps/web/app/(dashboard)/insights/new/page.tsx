@@ -1,19 +1,78 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocale } from "next-intl";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { DisclaimerBanner } from "@/components/shared/disclaimer-banner";
 
+type PaymentStatus = "loading" | "unpaid" | "paid" | "mock";
+
 export default function NewInsightPage() {
   const locale = useLocale() as "en" | "zh";
+  const searchParams = useSearchParams();
+  const sessionParam = searchParams.get("session");
+  const mockPayment = searchParams.get("mock_payment");
+
   const [questions, setQuestions] = useState(["", "", ""]);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<Record<string, unknown> | null>(null);
   const [emergency, setEmergency] = useState<string | null>(null);
   const [agreed, setAgreed] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("loading");
+  const [checkingOut, setCheckingOut] = useState(false);
+  const [screeningSessionId, setScreeningSessionId] = useState<string | null>(null);
 
   const activeQuestions = questions.filter((q) => q.trim().length > 0);
+
+  // Resolve screening session ID from URL or localStorage
+  useEffect(() => {
+    const sid = sessionParam ?? localStorage.getItem("qiorazen_screening_session");
+    setScreeningSessionId(sid);
+  }, [sessionParam]);
+
+  // Check payment status
+  useEffect(() => {
+    if (mockPayment === "success") {
+      setPaymentStatus("mock");
+      return;
+    }
+
+    async function checkPayment() {
+      try {
+        const res = await fetch("/api/payments/status");
+        if (!res.ok) {
+          // API not available — allow access in demo mode
+          setPaymentStatus("mock");
+          return;
+        }
+        const data = await res.json();
+        setPaymentStatus(data.hasAccess ? "paid" : "unpaid");
+      } catch {
+        // No API — demo mode
+        setPaymentStatus("mock");
+      }
+    }
+
+    checkPayment();
+  }, [mockPayment]);
+
+  async function handleCheckout(tier: "entry" | "core" | "premium") {
+    setCheckingOut(true);
+    try {
+      const res = await fetch("/api/payments/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tier }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch {
+      setCheckingOut(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,6 +87,7 @@ export default function NewInsightPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           questions: activeQuestions,
+          screeningSessionId,
           language: locale,
           tier: "entry",
         }),
@@ -50,6 +110,163 @@ export default function NewInsightPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  // Loading state
+  if (paymentStatus === "loading") {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <p className="text-sm text-muted-foreground">
+          {locale === "zh" ? "加载中..." : "Loading..."}
+        </p>
+      </div>
+    );
+  }
+
+  // Payment gate — show pricing options
+  if (paymentStatus === "unpaid") {
+    return (
+      <div className="space-y-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold">
+            {locale === "zh" ? "选择您的方案" : "Choose Your Plan"}
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {locale === "zh"
+              ? "获取 AI 个性化养生建议 + 专业顾问审核"
+              : "Get AI-personalized wellness insights + expert advisor review"}
+          </p>
+        </div>
+
+        <div className="grid gap-6 sm:grid-cols-3">
+          {/* Starter */}
+          <div className="flex flex-col rounded-2xl border bg-card p-6">
+            <h3 className="text-lg font-semibold">
+              {locale === "zh" ? "入门体验" : "Starter Session"}
+            </h3>
+            <div className="mt-2">
+              <span className="text-3xl font-bold">$49</span>
+              <span className="text-muted-foreground">
+                {locale === "zh" ? " / 次" : " / session"}
+              </span>
+            </div>
+            <ul className="mt-4 flex-1 space-y-2 text-sm text-muted-foreground">
+              <li>
+                {locale === "zh"
+                  ? "1 次个性化养生建议"
+                  : "1 personalized wellness insight"}
+              </li>
+              <li>
+                {locale === "zh"
+                  ? "最多 3 个问题"
+                  : "Up to 3 questions"}
+              </li>
+              <li>
+                {locale === "zh"
+                  ? "48 小时内顾问审核"
+                  : "Advisor review within 48h"}
+              </li>
+            </ul>
+            <button
+              onClick={() => handleCheckout("entry")}
+              disabled={checkingOut}
+              className="mt-4 rounded-lg border-2 border-brand-600 py-2.5 text-sm font-semibold text-brand-600 hover:bg-brand-50 disabled:opacity-50"
+            >
+              {checkingOut
+                ? (locale === "zh" ? "跳转中..." : "Redirecting...")
+                : (locale === "zh" ? "立即购买" : "Get Started")}
+            </button>
+          </div>
+
+          {/* Core — highlighted */}
+          <div className="relative flex flex-col rounded-2xl border-2 border-brand-500 bg-brand-50/50 p-6 shadow-lg">
+            <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-600 px-3 py-0.5 text-xs font-semibold text-white">
+              {locale === "zh" ? "推荐" : "Recommended"}
+            </span>
+            <h3 className="text-lg font-semibold">
+              {locale === "zh" ? "核心会员" : "Core Membership"}
+            </h3>
+            <div className="mt-2">
+              <span className="text-3xl font-bold">$499</span>
+              <span className="text-muted-foreground">
+                {locale === "zh" ? " / 月" : " / mo"}
+              </span>
+            </div>
+            <ul className="mt-4 flex-1 space-y-2 text-sm text-muted-foreground">
+              <li>
+                {locale === "zh"
+                  ? "每天 2 个问题"
+                  : "2 questions per day"}
+              </li>
+              <li>
+                {locale === "zh"
+                  ? "持续个性化指导"
+                  : "Ongoing personalized guidance"}
+              </li>
+              <li>
+                {locale === "zh"
+                  ? "48 小时内顾问审核"
+                  : "Advisor review within 48h"}
+              </li>
+            </ul>
+            <button
+              onClick={() => handleCheckout("core")}
+              disabled={checkingOut}
+              className="mt-4 rounded-lg bg-brand-600 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+            >
+              {checkingOut
+                ? (locale === "zh" ? "跳转中..." : "Redirecting...")
+                : (locale === "zh" ? "订阅" : "Subscribe")}
+            </button>
+          </div>
+
+          {/* Premium */}
+          <div className="flex flex-col rounded-2xl border bg-card p-6">
+            <h3 className="text-lg font-semibold">
+              {locale === "zh" ? "尊享会员" : "Premium Advisory"}
+            </h3>
+            <div className="mt-2">
+              <span className="text-3xl font-bold">$1,499</span>
+              <span className="text-muted-foreground">
+                {locale === "zh" ? " / 月" : " / mo"}
+              </span>
+            </div>
+            <ul className="mt-4 flex-1 space-y-2 text-sm text-muted-foreground">
+              <li>
+                {locale === "zh"
+                  ? "每天 3 个问题"
+                  : "3 questions per day"}
+              </li>
+              <li>
+                {locale === "zh"
+                  ? "24 小时内优先审核"
+                  : "Priority review within 24h"}
+              </li>
+              <li>
+                {locale === "zh"
+                  ? "每周主动 Check-in"
+                  : "Weekly proactive check-in"}
+              </li>
+            </ul>
+            <button
+              onClick={() => handleCheckout("premium")}
+              disabled={checkingOut}
+              className="mt-4 rounded-lg border-2 border-brand-600 py-2.5 text-sm font-semibold text-brand-600 hover:bg-brand-50 disabled:opacity-50"
+            >
+              {checkingOut
+                ? (locale === "zh" ? "跳转中..." : "Redirecting...")
+                : (locale === "zh" ? "订阅尊享" : "Go Premium")}
+            </button>
+          </div>
+        </div>
+
+        <p className="text-center text-xs text-muted-foreground">
+          {locale === "zh"
+            ? "所有付款通过 Stripe 安全处理。可随时取消订阅。"
+            : "All payments securely processed via Stripe. Cancel subscriptions anytime."}
+        </p>
+      </div>
+    );
   }
 
   // Show result
@@ -101,8 +318,22 @@ export default function NewInsightPage() {
         {(result as any).mock && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-center text-sm text-amber-800">
             {locale === "zh"
-              ? "⚠ 这是模拟回复（开发模式）。正式上线后将由 AI 个性化生成并经顾问审核。"
-              : "⚠ This is a mock response (development mode). In production, content will be AI-generated and advisor-reviewed."}
+              ? "这是模拟回复（开发模式）。正式上线后将由 AI 个性化生成并经顾问审核。"
+              : "This is a mock response (development mode). In production, content will be AI-generated and advisor-reviewed."}
+          </div>
+        )}
+
+        {(result as any).insightId && (
+          <div className="rounded-lg border border-brand-200 bg-brand-50 p-4 text-center text-sm text-brand-800">
+            {locale === "zh"
+              ? "您的养生建议将由专业顾问在 48 小时内审核确认。"
+              : "Your wellness insight will be reviewed by an advisor within 48 hours."}
+            <Link
+              href={`/insights/${(result as any).insightId}`}
+              className="ml-2 font-medium text-brand-600 underline hover:text-brand-700"
+            >
+              {locale === "zh" ? "查看状态" : "View Status"}
+            </Link>
           </div>
         )}
 
