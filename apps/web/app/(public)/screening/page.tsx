@@ -1,6 +1,8 @@
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { QuestionnaireForm } from "@/components/screening/questionnaire-form";
+import { AuthNav } from "@/components/shared/auth-nav";
+import { LanguageSwitcher } from "@/components/shared/language-switcher";
 
 export default function ScreeningPage() {
   const t = useTranslations();
@@ -13,6 +15,10 @@ export default function ScreeningPage() {
           <Link href="/" className="text-xl font-bold text-brand-700">
             {t("common.appName")}
           </Link>
+          <nav className="flex items-center gap-4">
+            <LanguageSwitcher />
+            <AuthNav />
+          </nav>
         </div>
       </header>
 

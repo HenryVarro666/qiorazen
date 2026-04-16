@@ -1,6 +1,43 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
+interface CaseSummary {
+  id: string;
+  status: string;
+  tier: string;
+  response_deadline: string | null;
+}
+
 export default function PortalDashboard() {
+  const [cases, setCases] = useState<CaseSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch("/api/practitioner/cases");
+        if (res.ok) {
+          const data = await res.json();
+          setCases(data.cases ?? []);
+        }
+      } catch {
+        // continue
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
+
+  const pendingCount = cases.length;
+  const urgentCount = cases.filter((c) => {
+    if (!c.response_deadline) return false;
+    const hoursLeft = (new Date(c.response_deadline).getTime() - Date.now()) / (1000 * 60 * 60);
+    return hoursLeft < 4;
+  }).length;
+
   return (
     <div className="space-y-8">
       <div>
@@ -11,9 +48,21 @@ export default function PortalDashboard() {
       </div>
 
       <div className="grid gap-6 sm:grid-cols-3">
-        <StatCard title="Pending Review" value="—" color="amber" />
-        <StatCard title="Reviewed Today" value="—" color="green" />
-        <StatCard title="Urgent (< 4h)" value="—" color="red" />
+        <StatCard
+          title="Pending Review"
+          value={loading ? "..." : String(pendingCount)}
+          color="amber"
+        />
+        <StatCard
+          title="Urgent (< 4h)"
+          value={loading ? "..." : String(urgentCount)}
+          color={urgentCount > 0 ? "red" : "green"}
+        />
+        <StatCard
+          title="Total Cases"
+          value={loading ? "..." : String(cases.length)}
+          color="green"
+        />
       </div>
 
       <Link

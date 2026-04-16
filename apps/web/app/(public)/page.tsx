@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { LanguageSwitcher } from "@/components/shared/language-switcher";
+import { AuthNav } from "@/components/shared/auth-nav";
 
 export default function LandingPage() {
   const t = useTranslations();
@@ -15,12 +16,7 @@ export default function LandingPage() {
           </span>
           <nav className="flex items-center gap-4">
             <LanguageSwitcher />
-            <Link
-              href="/login"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              {t("common.login")}
-            </Link>
+            <AuthNav />
             <Link
               href="#how-it-works"
               className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"

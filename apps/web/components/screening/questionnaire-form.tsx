@@ -24,6 +24,7 @@ export function QuestionnaireForm() {
   const [gender, setGender] = useState<Gender | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<AnswerMap>({});
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [result, setResult] = useState<{
     scores: ConstitutionScores;
     primary: ConstitutionType;
@@ -66,23 +67,46 @@ export function QuestionnaireForm() {
   const prevSection = currentStep > 0 ? questions[currentStep - 1].section : null;
   const isNewSection = currentSection !== prevSection;
 
-  function handleAnswer(value: number) {
+  async function handleAnswer(value: number) {
     const newAnswers = { ...answers, [currentQuestion.key]: value };
     setAnswers(newAnswers);
 
     if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Calculate results
+      // Calculate results client-side (instant)
       const scores = scoreConstitution(newAnswers, gender!);
       const primary = getPrimaryConstitution(scores);
       setResult({ scores, primary });
+
+      // Persist to API in background
+      try {
+        const res = await fetch("/api/screening", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ answers: newAnswers, gender }),
+        });
+        const data = await res.json();
+        if (data.sessionId) {
+          setSessionId(data.sessionId);
+          localStorage.setItem("qiorazen_screening_session", data.sessionId);
+        }
+      } catch {
+        // API not available — results still shown from client-side calculation
+      }
+
+      // Always store scores locally as fallback
+      localStorage.setItem("qiorazen_screening_scores", JSON.stringify(scores));
+      localStorage.setItem("qiorazen_screening_primary", primary);
     }
   }
 
   function handleBack() {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
+    } else {
+      // First question → back to gender selection
+      setGender(null);
     }
   }
 
@@ -103,6 +127,7 @@ export function QuestionnaireForm() {
         constitutionResults={allResults}
         recommendations={recommendations}
         locale={locale}
+        sessionId={sessionId}
         onRestart={handleRestart}
       />
     );
@@ -141,7 +166,7 @@ export function QuestionnaireForm() {
         locale={locale}
         selectedValue={answers[currentQuestion.key]}
         onSelect={handleAnswer}
-        onBack={currentStep > 0 ? handleBack : undefined}
+        onBack={handleBack}
       />
     </div>
   );

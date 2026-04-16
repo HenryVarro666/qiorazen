@@ -2,7 +2,6 @@
 
 import type { StandardQuestion } from "@qiorazen/tcm-engine";
 import { SCALE_LABELS } from "@qiorazen/tcm-engine";
-import { useTranslations } from "next-intl";
 
 interface QuestionStepProps {
   question: StandardQuestion;
@@ -19,10 +18,21 @@ export function QuestionStep({
   onSelect,
   onBack,
 }: QuestionStepProps) {
-  const t = useTranslations("common");
-
   return (
     <div className="space-y-6">
+      {/* Back button at top */}
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          {locale === "zh" ? "上一题" : "Previous"}
+        </button>
+      )}
+
       <h2 className="text-xl font-semibold">
         {question.label[locale]}
       </h2>
@@ -44,15 +54,6 @@ export function QuestionStep({
           </button>
         ))}
       </div>
-
-      {onBack && (
-        <button
-          onClick={onBack}
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          {t("back")}
-        </button>
-      )}
     </div>
   );
 }

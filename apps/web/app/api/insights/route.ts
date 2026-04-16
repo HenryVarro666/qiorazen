@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
         .insert({
           user_id: userId,
           screening_session_id: screeningSessionId ?? null,
-          status: "ai_complete",
+          status: "practitioner_pending",
           tier,
           user_questions: questions,
           ai_draft: result,

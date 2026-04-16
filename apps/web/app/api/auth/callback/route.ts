@@ -28,6 +28,25 @@ export async function GET(request: NextRequest) {
 
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      // Link any unlinked screening sessions to this user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Parse session ID from the redirect URL if present
+        try {
+          const nextUrl = new URL(next, origin);
+          const screeningSessionId = nextUrl.searchParams.get("session");
+          if (screeningSessionId) {
+            await supabase
+              .from("screening_sessions")
+              .update({ user_id: user.id })
+              .eq("id", screeningSessionId)
+              .is("user_id", null);
+          }
+        } catch {
+          // Parse failed — continue with redirect
+        }
+      }
+
       return NextResponse.redirect(`${origin}${next}`);
     }
   }
