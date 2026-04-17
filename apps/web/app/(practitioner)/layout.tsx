@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+import { LanguageSwitcher } from "@/components/shared/language-switcher";
 import { createClient } from "@/lib/supabase/client";
 
 export default function PractitionerLayout({
@@ -11,6 +12,7 @@ export default function PractitionerLayout({
   children: React.ReactNode;
 }) {
   const t = useTranslations("common");
+  const locale = useLocale() as "en" | "zh";
   const router = useRouter();
 
   async function handleLogout() {
@@ -28,21 +30,25 @@ export default function PractitionerLayout({
               {t("appName")}
             </Link>
             <span className="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-medium text-brand-700">
-              Advisor Portal
+              {locale === "zh" ? "顾问工作台" : "Advisor Portal"}
             </span>
           </div>
           <nav className="flex items-center gap-4">
             <Link href="/portal" className="text-sm text-muted-foreground hover:text-foreground">
-              Dashboard
+              {locale === "zh" ? "总览" : "Dashboard"}
             </Link>
             <Link href="/portal/cases" className="text-sm text-muted-foreground hover:text-foreground">
-              Cases
+              {locale === "zh" ? "案例" : "Cases"}
             </Link>
+            <Link href="/dashboard" className="text-sm text-muted-foreground hover:text-foreground">
+              {locale === "zh" ? "用户面板" : "My Dashboard"}
+            </Link>
+            <LanguageSwitcher />
             <button
               onClick={handleLogout}
               className="text-sm text-muted-foreground hover:text-foreground"
             >
-              Log Out
+              {locale === "zh" ? "退出" : "Log Out"}
             </button>
           </nav>
         </div>

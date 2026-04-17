@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useLocale } from "next-intl";
 import Link from "next/link";
 
 interface CaseSummary {
@@ -11,6 +12,7 @@ interface CaseSummary {
 }
 
 export default function PortalDashboard() {
+  const locale = useLocale() as "en" | "zh";
   const [cases, setCases] = useState<CaseSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,25 +43,27 @@ export default function PortalDashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Advisor Dashboard</h1>
+        <h1 className="text-2xl font-bold">
+          {locale === "zh" ? "顾问工作台" : "Advisor Dashboard"}
+        </h1>
         <p className="mt-2 text-muted-foreground">
-          Review and approve AI-generated wellness insights
+          {locale === "zh" ? "审核 AI 生成的养生建议" : "Review and approve AI-generated wellness insights"}
         </p>
       </div>
 
       <div className="grid gap-6 sm:grid-cols-3">
         <StatCard
-          title="Pending Review"
+          title={locale === "zh" ? "待审核" : "Pending Review"}
           value={loading ? "..." : String(pendingCount)}
           color="amber"
         />
         <StatCard
-          title="Urgent (< 4h)"
+          title={locale === "zh" ? "紧急 (< 4h)" : "Urgent (< 4h)"}
           value={loading ? "..." : String(urgentCount)}
           color={urgentCount > 0 ? "red" : "green"}
         />
         <StatCard
-          title="Total Cases"
+          title={locale === "zh" ? "全部案例" : "Total Cases"}
           value={loading ? "..." : String(cases.length)}
           color="green"
         />
@@ -69,13 +73,14 @@ export default function PortalDashboard() {
         href="/portal/cases"
         className="inline-block rounded-lg bg-brand-600 px-6 py-3 text-sm font-medium text-white hover:bg-brand-700"
       >
-        View Case Queue
+        {locale === "zh" ? "查看案例队列" : "View Case Queue"}
       </Link>
 
       <div className="rounded-lg border bg-amber-50 p-4 text-sm text-amber-800">
-        <strong>Reminder:</strong> All responses must use wellness language only.
-        Never diagnose, prescribe, or make organ-level claims.
-        Your notes will be reviewed by compliance guardrails before delivery.
+        <strong>{locale === "zh" ? "提醒：" : "Reminder:"}</strong>{" "}
+        {locale === "zh"
+          ? "所有回复必须使用养生语言。不得诊断、开处方或做器官层面的判断。您的备注将经过合规审查后才会发送给用户。"
+          : "All responses must use wellness language only. Never diagnose, prescribe, or make organ-level claims. Your notes will be reviewed by compliance guardrails before delivery."}
       </div>
     </div>
   );
