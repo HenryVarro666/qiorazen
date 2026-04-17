@@ -7,6 +7,7 @@ import type { ConstitutionScores, ConstitutionType } from "@qiorazen/types";
 import { CONSTITUTION_INFO, getPaidRecommendations, type Recommendations, type ConstitutionResult, type PaidRecommendations } from "@qiorazen/tcm-engine";
 import { DisclaimerBanner, DisclaimerFooter } from "@/components/shared/disclaimer-banner";
 import { ConstitutionChart } from "./constitution-chart";
+import { createClient } from "@/lib/supabase/client";
 
 interface ResultCardProps {
   scores: ConstitutionScores;
@@ -30,11 +31,20 @@ export function ResultCard({
   const t = useTranslations();
   const info = CONSTITUTION_INFO[primaryConstitution];
 
-  // Dev mode: ?unlock=1 to preview paid content
   const [isUnlocked, setIsUnlocked] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setIsUnlocked(params.get("unlock") === "1");
+
+    // Check auth state
+    try {
+      const supabase = createClient();
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        setIsLoggedIn(!!user);
+      }).catch(() => {});
+    } catch {}
   }, []);
 
   // Secondary constitutions: top 3 biased types with score ≥ 30 (excluding primary)
@@ -173,7 +183,9 @@ export function ResultCard({
               {t("screening.result.deeperCtaSub")}
             </p>
             <Link
-              href={`/login?redirect=${encodeURIComponent(`/insights/new${sessionId ? `?session=${sessionId}` : ""}`)}`}
+              href={isLoggedIn
+                ? `/insights/new${sessionId ? `?session=${sessionId}` : ""}`
+                : `/login?redirect=${encodeURIComponent(`/insights/new${sessionId ? `?session=${sessionId}` : ""}`)}`}
               className="mt-4 inline-block rounded-lg bg-brand-600 px-8 py-3 text-sm font-medium text-white hover:bg-brand-700"
             >
               {locale === "zh" ? "立即解锁 — $49" : "Unlock Now — $49"}
