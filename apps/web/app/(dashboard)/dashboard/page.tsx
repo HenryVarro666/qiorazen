@@ -36,14 +36,18 @@ export default function DashboardPage() {
   const locale = useLocale() as "en" | "zh";
   const [screening, setScreening] = useState<ScreeningData | null>(null);
   const [insights, setInsights] = useState<InsightSummary[]>([]);
+  const [plan, setPlan] = useState<{ tier: string; subscription: boolean } | null>(null);
+  const [isPractitioner, setIsPractitioner] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const [screeningRes, insightsRes] = await Promise.all([
+        const [screeningRes, insightsRes, paymentRes, practitionerRes] = await Promise.all([
           fetch("/api/screening/latest"),
           fetch("/api/insights"),
+          fetch("/api/payments/status"),
+          fetch("/api/practitioner/check"),
         ]);
 
         if (screeningRes.ok) {
@@ -54,6 +58,18 @@ export default function DashboardPage() {
         if (insightsRes.ok) {
           const data = await insightsRes.json();
           if (data.insights) setInsights(data.insights);
+        }
+
+        if (paymentRes.ok) {
+          const data = await paymentRes.json();
+          if (data.hasAccess) {
+            setPlan({ tier: data.tier ?? "entry", subscription: data.subscription ?? false });
+          }
+        }
+
+        if (practitionerRes.ok) {
+          const data = await practitionerRes.json();
+          if (data.isPractitioner) setIsPractitioner(true);
         }
       } catch {
         // Continue with empty state
@@ -85,6 +101,48 @@ export default function DashboardPage() {
           {locale === "zh" ? "您的养生洞察仪表盘" : "Your wellness insights dashboard"}
         </p>
       </div>
+
+      {/* Advisor portal link */}
+      {isPractitioner && (
+        <Link
+          href="/portal"
+          className="flex items-center justify-between rounded-lg border-2 border-amber-300 bg-amber-50 px-4 py-3 transition-colors hover:border-amber-400"
+        >
+          <div>
+            <p className="text-sm font-semibold text-amber-800">
+              {locale === "zh" ? "养生顾问工作台" : "Advisor Portal"}
+            </p>
+            <p className="text-xs text-amber-600">
+              {locale === "zh" ? "审核待处理的养生咨询" : "Review pending wellness consultations"}
+            </p>
+          </div>
+          <svg className="h-5 w-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </Link>
+      )}
+
+      {/* Plan badge */}
+      {plan && (
+        <div className={`rounded-lg px-4 py-3 text-sm font-medium ${
+          plan.tier === "premium"
+            ? "bg-purple-100 text-purple-800"
+            : plan.tier === "core"
+            ? "bg-brand-100 text-brand-800"
+            : "bg-blue-100 text-blue-800"
+        }`}>
+          {plan.tier === "premium"
+            ? (locale === "zh" ? "尊享会员" : "Premium Advisory")
+            : plan.tier === "core"
+            ? (locale === "zh" ? "核心会员" : "Core Membership")
+            : (locale === "zh" ? "入门体验" : "Starter Session")}
+          {plan.subscription && (
+            <span className="ml-2 text-xs opacity-70">
+              {locale === "zh" ? "· 订阅中" : "· Active"}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Constitution profile */}
       {screening ? (

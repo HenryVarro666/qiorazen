@@ -40,8 +40,8 @@ export async function POST(request: NextRequest) {
   const session = await stripe.checkout.sessions.create({
     mode: isSubscription ? "subscription" : "payment",
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?payment=success&tier=${tier}`,
-    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?payment=cancelled`,
+    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/insights/new?checkout_session={CHECKOUT_SESSION_ID}&tier=${tier}`,
+    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/insights/new?payment=cancelled`,
     metadata: {
       user_id: user.id,
       tier,

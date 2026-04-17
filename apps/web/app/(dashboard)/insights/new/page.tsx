@@ -13,10 +13,15 @@ export default function NewInsightPage() {
   const searchParams = useSearchParams();
   const sessionParam = searchParams.get("session");
   const mockPayment = searchParams.get("mock_payment");
+  const checkoutSession = searchParams.get("checkout_session");
+  const tierParam = searchParams.get("tier");
 
-  const [questions, setQuestions] = useState(["", "", ""]);
+  const [questions, setQuestions] = useState([""]);
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [summarizing, setSummarizing] = useState(false);
+  const [useAiVersion, setUseAiVersion] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<Record<string, unknown> | null>(null);
+  const [submitted, setSubmitted] = useState<{ insightId: string | null; questions: string[] } | null>(null);
   const [emergency, setEmergency] = useState<string | null>(null);
   const [agreed, setAgreed] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("loading");
@@ -39,23 +44,39 @@ export default function NewInsightPage() {
     }
 
     async function checkPayment() {
+      // If returning from Stripe checkout, verify the session
+      if (checkoutSession) {
+        try {
+          const res = await fetch("/api/payments/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sessionId: checkoutSession }),
+          });
+          const data = await res.json();
+          if (data.verified) {
+            setPaymentStatus("paid");
+            return;
+          }
+        } catch {
+          // fall through to normal check
+        }
+      }
+
       try {
         const res = await fetch("/api/payments/status");
         if (!res.ok) {
-          // API not available — allow access in demo mode
           setPaymentStatus("mock");
           return;
         }
         const data = await res.json();
         setPaymentStatus(data.hasAccess ? "paid" : "unpaid");
       } catch {
-        // No API — demo mode
         setPaymentStatus("mock");
       }
     }
 
     checkPayment();
-  }, [mockPayment]);
+  }, [mockPayment, checkoutSession]);
 
   async function handleCheckout(tier: "entry" | "core" | "premium") {
     setCheckingOut(true);
@@ -74,9 +95,35 @@ export default function NewInsightPage() {
     }
   }
 
+  async function handleSummarize() {
+    if (activeQuestions.length === 0) return;
+    setSummarizing(true);
+    try {
+      const res = await fetch("/api/ai/assist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "summarize", text: activeQuestions.join("\n") }),
+      });
+      const data = await res.json();
+      if (data.result) {
+        setAiSummary(data.result);
+        setUseAiVersion(false);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setSummarizing(false);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (activeQuestions.length === 0 || !agreed) return;
+
+    // If user chose AI version, parse it back into questions
+    const finalQuestions = useAiVersion && aiSummary
+      ? aiSummary.split("\n").map((q) => q.replace(/^\d+\.\s*/, "").trim()).filter(Boolean)
+      : activeQuestions;
 
     setLoading(true);
     setEmergency(null);
@@ -86,10 +133,10 @@ export default function NewInsightPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          questions: activeQuestions,
+          questions: finalQuestions,
           screeningSessionId,
           language: locale,
-          tier: "entry",
+          tier: tierParam ?? "entry",
         }),
       });
 
@@ -97,9 +144,8 @@ export default function NewInsightPage() {
 
       if (data.emergency) {
         setEmergency(data.message);
-        setResult(null);
       } else {
-        setResult(data);
+        setSubmitted({ insightId: data.insightId, questions: activeQuestions });
       }
     } catch {
       setEmergency(
@@ -269,92 +315,58 @@ export default function NewInsightPage() {
     );
   }
 
-  // Show result
-  if (result) {
+  // Submission confirmation
+  if (submitted) {
     return (
-      <div className="space-y-6">
-        <DisclaimerBanner />
-
-        <div className="rounded-xl border bg-card p-6">
-          <h2 className="text-lg font-semibold">
-            {locale === "zh" ? "体质概览" : "Constitution Summary"}
+      <div className="mx-auto max-w-lg space-y-6 py-10">
+        <div className="rounded-xl border bg-card p-8 text-center space-y-4">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand-100">
+            <svg className="h-7 w-7 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-semibold">
+            {locale === "zh" ? "问题已提交" : "Questions Submitted"}
           </h2>
-          <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-            {(result as any).constitutionSummary}
+          <p className="text-sm text-muted-foreground">
+            {locale === "zh"
+              ? "AI 已生成初步建议，我们的养生顾问将在 24-48 小时内审核确认后发送给您。"
+              : "AI has generated an initial draft. Our wellness advisor will review and deliver your personalized insight within 24-48 hours."}
           </p>
-        </div>
 
-        <div className="rounded-xl border bg-card p-6">
-          <h2 className="text-lg font-semibold">
-            {locale === "zh" ? "养生建议" : "Wellness Insights"}
-          </h2>
-          <div className="mt-3 text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-            {(result as any).wellnessInsights}
+          {/* Show submitted questions */}
+          <div className="rounded-lg bg-muted/50 p-4 text-left">
+            <p className="text-xs font-medium uppercase text-muted-foreground mb-2">
+              {locale === "zh" ? "您提交的问题" : "Your Questions"}
+            </p>
+            <ol className="space-y-1 text-sm list-decimal list-inside">
+              {submitted.questions.map((q, i) => (
+                <li key={i}>{q}</li>
+              ))}
+            </ol>
           </div>
         </div>
-
-        {(result as any).lifestyleSuggestions && (
-          <div className="rounded-xl border bg-card p-6">
-            <h2 className="mb-4 text-lg font-semibold">
-              {locale === "zh" ? "生活方式建议" : "Lifestyle Suggestions"}
-            </h2>
-            <div className="space-y-4">
-              <SuggestionList
-                title={locale === "zh" ? "饮食" : "Dietary"}
-                items={(result as any).lifestyleSuggestions.dietary_tendencies}
-              />
-              <SuggestionList
-                title={locale === "zh" ? "运动" : "Activity"}
-                items={(result as any).lifestyleSuggestions.activity_suggestions}
-              />
-              <SuggestionList
-                title={locale === "zh" ? "生活习惯" : "Lifestyle"}
-                items={(result as any).lifestyleSuggestions.lifestyle_habits}
-              />
-            </div>
-          </div>
-        )}
-
-        {(result as any).mock && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-center text-sm text-amber-800">
-            {locale === "zh"
-              ? "这是模拟回复（开发模式）。正式上线后将由 AI 个性化生成并经顾问审核。"
-              : "This is a mock response (development mode). In production, content will be AI-generated and advisor-reviewed."}
-          </div>
-        )}
-
-        {(result as any).insightId && (
-          <div className="rounded-lg border border-brand-200 bg-brand-50 p-4 text-center text-sm text-brand-800">
-            {locale === "zh"
-              ? "您的养生建议将由专业顾问在 48 小时内审核确认。"
-              : "Your wellness insight will be reviewed by an advisor within 48 hours."}
-            <Link
-              href={`/insights/${(result as any).insightId}`}
-              className="ml-2 font-medium text-brand-600 underline hover:text-brand-700"
-            >
-              {locale === "zh" ? "查看状态" : "View Status"}
-            </Link>
-          </div>
-        )}
-
-        <p className="text-center text-xs text-muted-foreground">
-          {locale === "zh"
-            ? "本信息仅供教育参考，不构成医疗建议。如有健康问题，请咨询持证医疗人员。"
-            : "This information is for educational purposes only and is not medical advice. Consult a licensed healthcare professional for medical concerns."}
-        </p>
 
         <div className="flex justify-center gap-4">
+          {submitted.insightId && (
+            <Link
+              href={`/insights/${submitted.insightId}`}
+              className="rounded-lg border px-6 py-2.5 text-sm font-medium hover:bg-accent"
+            >
+              {locale === "zh" ? "查看进度" : "Track Status"}
+            </Link>
+          )}
           <button
-            onClick={() => { setResult(null); setQuestions(["", "", ""]); setAgreed(false); }}
-            className="rounded-lg border px-6 py-2 text-sm hover:bg-accent"
+            onClick={() => { setSubmitted(null); setQuestions([""]); setAgreed(false); }}
+            className="rounded-lg border px-6 py-2.5 text-sm font-medium hover:bg-accent"
           >
-            {locale === "zh" ? "提新问题" : "Ask New Questions"}
+            {locale === "zh" ? "继续提问" : "Ask More"}
           </button>
           <Link
             href="/dashboard"
-            className="rounded-lg bg-brand-600 px-6 py-2 text-sm font-medium text-white hover:bg-brand-700"
+            className="rounded-lg bg-brand-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-brand-700"
           >
-            {locale === "zh" ? "返回首页" : "Back to Dashboard"}
+            {locale === "zh" ? "返回首页" : "Dashboard"}
           </Link>
         </div>
       </div>
@@ -367,10 +379,10 @@ export default function NewInsightPage() {
         <h1 className="text-2xl font-bold">
           {locale === "zh" ? "提交养生咨询" : "Submit Wellness Questions"}
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-1 text-sm text-muted-foreground">
           {locale === "zh"
-            ? "最多 3 个问题，我们将基于您的体质提供个性化养生建议"
-            : "Up to 3 questions — we'll provide personalized wellness guidance based on your constitution"}
+            ? "最多 3 个问题，养生顾问将在 24-48 小时内审核后回复"
+            : "Up to 3 questions — our advisor will review and respond within 24-48 hours"}
         </p>
       </div>
 
@@ -386,19 +398,49 @@ export default function NewInsightPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Questions */}
+      {/* How it works */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div className="rounded-lg border bg-card p-4 text-center">
+          <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-sm font-bold text-brand-700">1</div>
+          <p className="text-xs text-muted-foreground">
+            {locale === "zh" ? "填写您的养生问题" : "Write your questions"}
+          </p>
+        </div>
+        <div className="rounded-lg border bg-card p-4 text-center">
+          <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-sm font-bold text-brand-700">2</div>
+          <p className="text-xs text-muted-foreground">
+            {locale === "zh" ? "AI 生成个性化建议" : "AI generates personalized draft"}
+          </p>
+        </div>
+        <div className="rounded-lg border bg-card p-4 text-center">
+          <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-sm font-bold text-brand-700">3</div>
+          <p className="text-xs text-muted-foreground">
+            {locale === "zh" ? "养生顾问审核后发送" : "Advisor reviews & delivers"}
+          </p>
+        </div>
+      </div>
+
+      {/* Question form */}
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-4">
           {questions.map((q, i) => (
             <div key={i}>
-              <label className="block text-sm font-medium">
-                {locale === "zh" ? `问题 ${i + 1}` : `Question ${i + 1}`}
-                {i > 0 && (
-                  <span className="ml-2 text-xs text-muted-foreground">
-                    ({locale === "zh" ? "可选" : "optional"})
-                  </span>
-                )}
-              </label>
+              {questions.length > 1 && (
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-sm font-medium">
+                    {locale === "zh" ? `问题 ${i + 1}` : `Question ${i + 1}`}
+                  </label>
+                  {i > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setQuestions(questions.filter((_, j) => j !== i))}
+                      className="text-xs text-muted-foreground hover:text-red-500"
+                    >
+                      {locale === "zh" ? "移除" : "Remove"}
+                    </button>
+                  )}
+                </div>
+              )}
               <textarea
                 value={q}
                 onChange={(e) => {
@@ -406,27 +448,87 @@ export default function NewInsightPage() {
                   updated[i] = e.target.value;
                   setQuestions(updated);
                 }}
-                rows={2}
+                rows={3}
                 maxLength={500}
-                className="mt-1 block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 placeholder={
                   locale === "zh"
-                    ? "例：最近总是感觉疲劳，有什么生活方式上的建议吗？"
-                    : "e.g., I've been feeling tired lately — any lifestyle suggestions?"
+                    ? "描述您的养生问题或健康生活方式困惑..."
+                    : "Describe your wellness question or lifestyle concern..."
                 }
               />
-              <p className="mt-1 text-right text-xs text-muted-foreground">
-                {q.length}/500
-              </p>
+              <p className="mt-1 text-right text-xs text-muted-foreground">{q.length}/500</p>
             </div>
           ))}
+
+          {questions.length < 3 && (
+            <button
+              type="button"
+              onClick={() => setQuestions([...questions, ""])}
+              className="flex items-center gap-1 text-sm text-brand-600 hover:text-brand-700"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              {locale === "zh" ? "再加一个问题" : "Add another question"}
+            </button>
+          )}
         </div>
 
-        {/* Pre-submission consent */}
-        <div className="rounded-lg border bg-muted/50 p-4 space-y-3">
-          <p className="text-sm font-medium">
-            {locale === "zh" ? "提交前请确认：" : "Before submitting:"}
-          </p>
+        {/* AI Summarize */}
+        {activeQuestions.length > 0 && (
+          <div className="space-y-3">
+            <button
+              type="button"
+              onClick={handleSummarize}
+              disabled={summarizing}
+              className="flex items-center gap-2 text-sm text-brand-600 hover:text-brand-700 disabled:opacity-50"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              {summarizing
+                ? (locale === "zh" ? "AI 整理中..." : "AI refining...")
+                : (locale === "zh" ? "AI 帮我整理问题" : "AI: Refine my questions")}
+            </button>
+
+            {aiSummary && (
+              <div className="rounded-lg border bg-brand-50/50 p-4 space-y-3">
+                <p className="text-xs font-medium text-brand-700">
+                  {locale === "zh" ? "AI 整理版本：" : "AI-refined version:"}
+                </p>
+                <p className="text-sm whitespace-pre-wrap">{aiSummary}</p>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setUseAiVersion(true)}
+                    className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                      useAiVersion
+                        ? "bg-brand-600 text-white"
+                        : "border text-muted-foreground hover:bg-accent"
+                    }`}
+                  >
+                    {locale === "zh" ? "使用 AI 版本" : "Use AI version"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setUseAiVersion(false)}
+                    className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                      !useAiVersion
+                        ? "bg-brand-600 text-white"
+                        : "border text-muted-foreground hover:bg-accent"
+                    }`}
+                  >
+                    {locale === "zh" ? "使用我的原话" : "Use my original"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Consent */}
+        <div className="rounded-lg border bg-muted/50 p-4">
           <label className="flex items-start gap-3 text-sm">
             <input
               type="checkbox"
@@ -448,27 +550,19 @@ export default function NewInsightPage() {
           className="w-full rounded-lg bg-brand-600 py-3 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading
-            ? (locale === "zh" ? "处理中..." : "Processing...")
-            : (locale === "zh" ? "提交问题" : "Submit Questions")}
+            ? (locale === "zh" ? "提交中..." : "Submitting...")
+            : (locale === "zh"
+              ? `提交 ${activeQuestions.length} 个问题`
+              : `Submit ${activeQuestions.length} Question${activeQuestions.length !== 1 ? "s" : ""}`)}
         </button>
-      </form>
-    </div>
-  );
-}
 
-function SuggestionList({ title, items }: { title: string; items: string[] }) {
-  if (!items || items.length === 0) return null;
-  return (
-    <div>
-      <h4 className="text-sm font-medium text-brand-700">{title}</h4>
-      <ul className="mt-1.5 space-y-1">
-        {items.map((item, i) => (
-          <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-            <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-brand-400" />
-            {item}
-          </li>
-        ))}
-      </ul>
+        <Link
+          href="/dashboard"
+          className="block text-center text-xs text-brand-600 underline hover:text-brand-700"
+        >
+          {locale === "zh" ? "返回首页" : "Back to Dashboard"}
+        </Link>
+      </form>
     </div>
   );
 }

@@ -10,10 +10,16 @@ export function AuthNav() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setIsLoggedIn(!!user);
-    });
+    try {
+      const supabase = createClient();
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        setIsLoggedIn(!!user);
+      }).catch(() => {
+        // Auth check failed — show login link
+      });
+    } catch {
+      // Supabase not available
+    }
   }, []);
 
   if (isLoggedIn) {
