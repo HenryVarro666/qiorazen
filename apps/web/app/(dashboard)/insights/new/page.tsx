@@ -80,17 +80,22 @@ export default function NewInsightPage() {
 
   async function handleCheckout(tier: "entry" | "core" | "premium") {
     setCheckingOut(true);
+    setEmergency(null);
     try {
       const res = await fetch("/api/payments/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tier }),
+        body: JSON.stringify({ tier, screeningSessionId }),
       });
       const data = await res.json();
       if (data.url) {
         window.location.href = data.url;
+      } else {
+        setEmergency(data.error ?? (locale === "zh" ? "结账失败，请重试" : "Checkout failed. Please try again."));
+        setCheckingOut(false);
       }
     } catch {
+      setEmergency(locale === "zh" ? "网络错误" : "Network error");
       setCheckingOut(false);
     }
   }
