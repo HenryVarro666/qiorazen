@@ -207,7 +207,13 @@ export default function InsightDetailPage() {
           : "This information is for educational purposes only and is not medical advice. Consult a licensed healthcare professional for medical concerns."}
       </p>
 
-      <div className="flex justify-center">
+      <div className="flex justify-center gap-4">
+        <Link
+          href="/insights/new"
+          className="rounded-lg border px-6 py-2 text-sm font-medium hover:bg-accent"
+        >
+          {locale === "zh" ? "继续提问" : "Ask More"}
+        </Link>
         <Link
           href="/dashboard"
           className="rounded-lg bg-brand-600 px-6 py-2 text-sm font-medium text-white hover:bg-brand-700"
