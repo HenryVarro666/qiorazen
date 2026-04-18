@@ -5,9 +5,10 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { tier, insightRequestId } = body as {
+  const { tier, insightRequestId, screeningSessionId } = body as {
     tier: PriceTier;
     insightRequestId?: string;
+    screeningSessionId?: string;
   };
 
   if (!tier || !PRICES[tier === "core" ? "coreMonthly" : tier === "premium" ? "premiumMonthly" : "entry"]) {
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
   if (!stripe) {
     // Mock mode — no Stripe key configured
     return NextResponse.json({
-      url: `/dashboard/insights/new?mock_payment=success&tier=${tier}`,
+      url: `/insights/new?mock_payment=success&tier=${tier}`,
       mock: true,
     });
   }
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
   const session = await stripe.checkout.sessions.create({
     mode: isSubscription ? "subscription" : "payment",
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/insights/new?checkout_session={CHECKOUT_SESSION_ID}&tier=${tier}`,
+    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/insights/new?checkout_session={CHECKOUT_SESSION_ID}&tier=${tier}${screeningSessionId ? `&session=${screeningSessionId}` : ""}`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/insights/new?payment=cancelled`,
     metadata: {
       user_id: user.id,

@@ -3,7 +3,11 @@ import { createClient } from "@/lib/supabase/server";
 import { generateWellnessInsight } from "@/lib/ai/client";
 import { detectSeriousSymptoms } from "@/lib/ai/symptom-detector";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return NextResponse.json({ insights: [] });
+  }
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -13,7 +17,7 @@ export async function GET(request: NextRequest) {
 
   const { data } = await supabase
     .from("insight_requests")
-    .select("*")
+    .select("id, status, tier, user_questions, created_at, response_deadline")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -53,6 +57,7 @@ export async function POST(request: NextRequest) {
   let constitutionScores = null;
   let primaryConstitution = "balanced";
   let supabase: Awaited<ReturnType<typeof createClient>> | null = null;
+  let paymentCreditId: string | null = null;
 
   if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
     supabase = await createClient();
@@ -104,6 +109,8 @@ export async function POST(request: NextRequest) {
           error: language === "zh" ? "请先购买服务" : "Payment required",
         }, { status: 402 });
       }
+
+      paymentCreditId = payments[0].id;
     }
 
     // Get screening data
@@ -168,6 +175,14 @@ export async function POST(request: NextRequest) {
       .single();
 
     insightId = data?.id ?? null;
+
+    // Link one-time payment credit to this insight (prevents reuse)
+    if (insightId && paymentCreditId) {
+      await supabase
+        .from("payments")
+        .update({ insight_request_id: insightId })
+        .eq("id", paymentCreditId);
+    }
   }
 
   return NextResponse.json({
