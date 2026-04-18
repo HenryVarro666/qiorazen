@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useLocale } from "next-intl";
 import Link from "next/link";
 
 interface CaseItem {
@@ -14,6 +15,7 @@ interface CaseItem {
 }
 
 export default function CasesPage() {
+  const locale = useLocale() as "en" | "zh";
   const [cases, setCases] = useState<CaseItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -45,7 +47,9 @@ export default function CasesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <p className="text-sm text-muted-foreground">Loading cases...</p>
+        <p className="text-sm text-muted-foreground">
+          {locale === "zh" ? "加载中..." : "Loading cases..."}
+        </p>
       </div>
     );
   }
@@ -53,15 +57,21 @@ export default function CasesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Case Queue</h1>
+        <h1 className="text-2xl font-bold">
+          {locale === "zh" ? "案例队列" : "Case Queue"}
+        </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Sorted by: deadline urgency → tier priority → submission time
+          {locale === "zh"
+            ? "按截止时间紧迫度 → 方案优先级 → 提交时间排序"
+            : "Sorted by: deadline urgency → tier priority → submission time"}
         </p>
       </div>
 
       {cases.length === 0 ? (
         <div className="rounded-lg border bg-muted/30 p-10 text-center">
-          <p className="text-muted-foreground">No cases pending review.</p>
+          <p className="text-muted-foreground">
+            {locale === "zh" ? "暂无待审核案例" : "No cases pending review."}
+          </p>
         </div>
       ) : (
         <div className="space-y-3">

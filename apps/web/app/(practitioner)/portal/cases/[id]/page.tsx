@@ -49,11 +49,10 @@ export default function CaseDetailPage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch("/api/practitioner/cases");
+        const res = await fetch(`/api/practitioner/cases/${id}`);
         if (res.ok) {
           const data = await res.json();
-          const found = (data.cases ?? []).find((c: CaseDetail) => c.id === id);
-          setCaseData(found ?? null);
+          setCaseData(data.case ?? null);
         }
       } catch {
         // continue

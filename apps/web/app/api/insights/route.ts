@@ -76,7 +76,59 @@ export async function POST(request: NextRequest) {
     }, { status: 200 });
   }
 
-  // Get user (optional — works without auth for demo)
+  // Payment verification — block if not paid (skip in mock/demo mode)
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.STRIPE_SECRET_KEY) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check subscription
+    const { data: sub } = await supabase
+      .from("subscriptions")
+      .select("id, questions_used_today, daily_questions_limit, last_question_reset_date")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .maybeSingle();
+
+    if (sub) {
+      // Reset daily counter if needed
+      const today = new Date().toISOString().split("T")[0];
+      const usedToday = sub.last_question_reset_date !== today ? 0 : sub.questions_used_today;
+      if (usedToday >= sub.daily_questions_limit) {
+        return NextResponse.json({
+          error: language === "zh" ? "今日提问额度已用完" : "Daily question limit reached",
+        }, { status: 429 });
+      }
+      // Increment counter
+      await supabase
+        .from("subscriptions")
+        .update({
+          questions_used_today: usedToday + 1,
+          last_question_reset_date: today,
+        })
+        .eq("id", sub.id);
+    } else {
+      // Check one-time payment credits
+      const { data: payments } = await supabase
+        .from("payments")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("status", "completed")
+        .eq("payment_type", "one_time")
+        .is("insight_request_id", null)
+        .limit(1);
+
+      if (!payments || payments.length === 0) {
+        return NextResponse.json({
+          error: language === "zh" ? "请先购买服务" : "Payment required",
+        }, { status: 402 });
+      }
+    }
+  }
+
+  // Get user
   let userId: string | null = null;
   let constitutionScores = null;
   let primaryConstitution = "balanced";

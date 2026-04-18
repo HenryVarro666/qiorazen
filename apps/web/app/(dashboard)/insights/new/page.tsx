@@ -144,8 +144,10 @@ export default function NewInsightPage() {
 
       if (data.emergency) {
         setEmergency(data.message);
+      } else if (data.error) {
+        setEmergency(data.error);
       } else {
-        setSubmitted({ insightId: data.insightId, questions: activeQuestions });
+        setSubmitted({ insightId: data.insightId ?? null, questions: finalQuestions });
       }
     } catch {
       setEmergency(
