@@ -25,43 +25,15 @@ export async function POST(request: NextRequest) {
   const {
     questions,
     screeningSessionId,
-    tier = "entry",
     language = "en",
   } = body as {
     questions: string[];
     screeningSessionId?: string;
-    tier?: string;
     language?: "en" | "zh";
   };
 
   if (!questions || !Array.isArray(questions) || questions.length === 0 || questions.length > 3) {
-    return NextResponse.json(
-      { error: "1-3 questions required" },
-      { status: 400 }
-    );
-  }
-
-  // Validate tier server-side — never trust client input
-  let verifiedTier = "entry";
-  try {
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
-      const supabase = await createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        // Check subscription
-        const { data: sub } = await supabase
-          .from("subscriptions")
-          .select("tier, status")
-          .eq("user_id", user.id)
-          .eq("status", "active")
-          .maybeSingle();
-        if (sub) {
-          verifiedTier = sub.tier;
-        }
-      }
-    }
-  } catch {
-    // Continue with default tier
+    return NextResponse.json({ error: "1-3 questions required" }, { status: 400 });
   }
 
   // Serious symptom pre-check
@@ -72,45 +44,52 @@ export async function POST(request: NextRequest) {
       message: language === "zh"
         ? "您描述的情况可能需要立即就医。如遇紧急情况，请拨打 911。"
         : "You've described something that may require immediate medical attention. Please call 911.",
-      matchedPatterns: symptomCheck.matchedPatterns,
-    }, { status: 200 });
+    });
   }
 
-  // Payment verification — block if not paid (skip in mock/demo mode)
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.STRIPE_SECRET_KEY) {
-    const supabase = await createClient();
+  // Single supabase client for entire request
+  let userId: string | null = null;
+  let verifiedTier = "entry";
+  let constitutionScores = null;
+  let primaryConstitution = "balanced";
+  let supabase: Awaited<ReturnType<typeof createClient>> | null = null;
+
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
+
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    userId = user.id;
 
-    // Check subscription
+    // Check subscription tier
     const { data: sub } = await supabase
       .from("subscriptions")
-      .select("id, questions_used_today, daily_questions_limit, last_question_reset_date")
+      .select("id, tier, questions_used_today, daily_questions_limit, last_question_reset_date")
       .eq("user_id", user.id)
       .eq("status", "active")
       .maybeSingle();
 
     if (sub) {
-      // Reset daily counter if needed
-      const today = new Date().toISOString().split("T")[0];
-      const usedToday = sub.last_question_reset_date !== today ? 0 : sub.questions_used_today;
-      if (usedToday >= sub.daily_questions_limit) {
-        return NextResponse.json({
-          error: language === "zh" ? "今日提问额度已用完" : "Daily question limit reached",
-        }, { status: 429 });
+      verifiedTier = sub.tier;
+
+      // Payment gate: check daily limit
+      if (process.env.STRIPE_SECRET_KEY) {
+        const today = new Date().toISOString().split("T")[0];
+        const usedToday = sub.last_question_reset_date !== today ? 0 : sub.questions_used_today;
+        if (usedToday >= sub.daily_questions_limit) {
+          return NextResponse.json({
+            error: language === "zh" ? "今日提问额度已用完" : "Daily question limit reached",
+          }, { status: 429 });
+        }
+        await supabase
+          .from("subscriptions")
+          .update({ questions_used_today: usedToday + 1, last_question_reset_date: today })
+          .eq("id", sub.id);
       }
-      // Increment counter
-      await supabase
-        .from("subscriptions")
-        .update({
-          questions_used_today: usedToday + 1,
-          last_question_reset_date: today,
-        })
-        .eq("id", sub.id);
-    } else {
-      // Check one-time payment credits
+    } else if (process.env.STRIPE_SECRET_KEY) {
+      // No subscription — check one-time payment credits
       const { data: payments } = await supabase
         .from("payments")
         .select("id")
@@ -126,43 +105,27 @@ export async function POST(request: NextRequest) {
         }, { status: 402 });
       }
     }
-  }
 
-  // Get user
-  let userId: string | null = null;
-  let constitutionScores = null;
-  let primaryConstitution = "balanced";
+    // Get screening data
+    if (screeningSessionId) {
+      const { data: session } = await supabase
+        .from("screening_sessions")
+        .select("constitution_scores, primary_constitution")
+        .eq("id", screeningSessionId)
+        .maybeSingle();
 
-  try {
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
-      const supabase = await createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      userId = user?.id ?? null;
-
-      // Get screening data if available
-      if (screeningSessionId) {
-        const { data: session } = await supabase
-          .from("screening_sessions")
-          .select("constitution_scores, primary_constitution")
-          .eq("id", screeningSessionId)
-          .single();
-
-        if (session) {
-          constitutionScores = session.constitution_scores;
-          primaryConstitution = session.primary_constitution ?? "balanced";
-        }
+      if (session) {
+        constitutionScores = session.constitution_scores;
+        primaryConstitution = session.primary_constitution ?? "balanced";
       }
     }
-  } catch {
-    // Continue without DB
   }
 
-  // Calculate response deadline
+  // Generate AI insight
   const now = new Date();
   const deadlineHours = verifiedTier === "premium" ? 24 : 48;
   const deadline = new Date(now.getTime() + deadlineHours * 60 * 60 * 1000);
 
-  // Generate AI insight
   const result = await generateWellnessInsight({
     constitutionScores: constitutionScores ?? {
       balanced: 50, qi_deficiency: 50, yang_deficiency: 50,
@@ -183,33 +146,28 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  // Save to DB if available
+  // Save to DB
   let insightId: string | null = null;
-  try {
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && userId) {
-      const supabase = await createClient();
-      const { data } = await supabase
-        .from("insight_requests")
-        .insert({
-          user_id: userId,
-          screening_session_id: screeningSessionId ?? null,
-          status: "practitioner_pending",
-          tier: verifiedTier,
-          user_questions: questions,
-          ai_draft: result,
-          ai_wellness_insight: result.wellnessInsights,
-          ai_constitution_summary: result.constitutionSummary,
-          ai_lifestyle_suggestions: result.lifestyleSuggestions,
-          response_deadline: deadline.toISOString(),
-          disclaimer_version: "v1.0",
-        })
-        .select("id")
-        .single();
+  if (supabase && userId) {
+    const { data } = await supabase
+      .from("insight_requests")
+      .insert({
+        user_id: userId,
+        screening_session_id: screeningSessionId ?? null,
+        status: "practitioner_pending",
+        tier: verifiedTier,
+        user_questions: questions,
+        ai_draft: result,
+        ai_wellness_insight: result.wellnessInsights,
+        ai_constitution_summary: result.constitutionSummary,
+        ai_lifestyle_suggestions: result.lifestyleSuggestions,
+        response_deadline: deadline.toISOString(),
+        disclaimer_version: "v1.0",
+      })
+      .select("id")
+      .single();
 
-      insightId = data?.id ?? null;
-    }
-  } catch {
-    // Continue without DB
+    insightId = data?.id ?? null;
   }
 
   return NextResponse.json({

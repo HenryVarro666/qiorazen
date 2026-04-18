@@ -14,9 +14,19 @@ export async function POST(request: NextRequest) {
   }
 
   // Verify with Stripe
-  const session = await stripe.checkout.sessions.retrieve(sessionId);
+  let session;
+  try {
+    session = await stripe.checkout.sessions.retrieve(sessionId);
+  } catch {
+    return NextResponse.json({ verified: false, reason: "invalid_session" }, { status: 400 });
+  }
+
   if (session.payment_status !== "paid") {
     return NextResponse.json({ verified: false, reason: "not_paid" });
+  }
+
+  if (!session.amount_total || session.amount_total <= 0) {
+    return NextResponse.json({ verified: false, reason: "invalid_amount" }, { status: 400 });
   }
 
   // Record payment in DB
