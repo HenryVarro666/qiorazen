@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
       // Link any unlinked screening sessions to this user
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // Parse session ID from the redirect URL if present
+        // Parse session ID from redirect URL if present
         try {
           const nextUrl = new URL(next, origin);
           const screeningSessionId = nextUrl.searchParams.get("session");
@@ -43,8 +43,17 @@ export async function GET(request: NextRequest) {
               .is("user_id", null);
           }
         } catch {
-          // Parse failed — continue with redirect
+          // Parse failed — continue
         }
+
+        // Also link any sessions this user owns but have null user_id
+        // (covers localStorage-based sessions from before login)
+        await supabase
+          .from("screening_sessions")
+          .update({ user_id: user.id })
+          .is("user_id", null)
+          .order("completed_at", { ascending: false })
+          .limit(1);
       }
 
       return NextResponse.redirect(`${origin}${next}`);

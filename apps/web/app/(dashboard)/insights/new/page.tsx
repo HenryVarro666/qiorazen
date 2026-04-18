@@ -389,15 +389,30 @@ export default function NewInsightPage() {
       <DisclaimerBanner />
 
       {/* Emergency redirect */}
+      {/* Emergency — blocks entire form */}
       {emergency && (
-        <div className="rounded-xl border-2 border-red-300 bg-red-50 p-6 text-center">
+        <div className="rounded-xl border-2 border-red-300 bg-red-50 p-8 text-center space-y-4">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+            <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
           <p className="text-sm font-semibold text-red-800">{emergency}</p>
-          <p className="mt-2 text-sm text-red-600">
-            {locale === "zh" ? "紧急情况请拨打 911" : "For emergencies, call 911"}
+          <p className="text-sm text-red-600">
+            {locale === "zh"
+              ? "紧急情况请拨打 911 或 988（心理援助热线）"
+              : "For emergencies, call 911. For mental health crisis, call 988."}
           </p>
+          <Link
+            href="/dashboard"
+            className="inline-block rounded-lg border border-red-300 px-6 py-2 text-sm text-red-700 hover:bg-red-100"
+          >
+            {locale === "zh" ? "返回首页" : "Back to Dashboard"}
+          </Link>
         </div>
       )}
 
+      {!emergency && <>
       {/* How it works */}
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="rounded-lg border bg-card p-4 text-center">
@@ -563,6 +578,7 @@ export default function NewInsightPage() {
           {locale === "zh" ? "返回首页" : "Back to Dashboard"}
         </Link>
       </form>
+      </>}
     </div>
   );
 }
