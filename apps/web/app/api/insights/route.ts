@@ -41,6 +41,29 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Validate tier server-side — never trust client input
+  let verifiedTier = "entry";
+  try {
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      const supabase = await createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Check subscription
+        const { data: sub } = await supabase
+          .from("subscriptions")
+          .select("tier, status")
+          .eq("user_id", user.id)
+          .eq("status", "active")
+          .maybeSingle();
+        if (sub) {
+          verifiedTier = sub.tier;
+        }
+      }
+    }
+  } catch {
+    // Continue with default tier
+  }
+
   // Serious symptom pre-check
   const symptomCheck = detectSeriousSymptoms(questions);
   if (symptomCheck.detected) {
@@ -84,7 +107,7 @@ export async function POST(request: NextRequest) {
 
   // Calculate response deadline
   const now = new Date();
-  const deadlineHours = tier === "premium" ? 24 : 48;
+  const deadlineHours = verifiedTier === "premium" ? 24 : 48;
   const deadline = new Date(now.getTime() + deadlineHours * 60 * 60 * 1000);
 
   // Generate AI insight
@@ -119,7 +142,7 @@ export async function POST(request: NextRequest) {
           user_id: userId,
           screening_session_id: screeningSessionId ?? null,
           status: "practitioner_pending",
-          tier,
+          tier: verifiedTier,
           user_questions: questions,
           ai_draft: result,
           ai_wellness_insight: result.wellnessInsights,

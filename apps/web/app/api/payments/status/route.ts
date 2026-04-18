@@ -16,7 +16,7 @@ export async function GET() {
   // Check active subscription
   const { data: subscription } = await supabase
     .from("subscriptions")
-    .select("id, tier, status, daily_questions_limit, questions_used_today")
+    .select("id, tier, status, daily_questions_limit, questions_used_today, last_question_reset_date")
     .eq("user_id", user.id)
     .eq("status", "active")
     .order("created_at", { ascending: false })
@@ -24,12 +24,23 @@ export async function GET() {
     .maybeSingle();
 
   if (subscription) {
-    const atLimit = subscription.questions_used_today >= subscription.daily_questions_limit;
+    // Reset daily counter if it's a new day
+    const today = new Date().toISOString().split("T")[0];
+    let usedToday = subscription.questions_used_today;
+    if (subscription.last_question_reset_date !== today) {
+      usedToday = 0;
+      await supabase
+        .from("subscriptions")
+        .update({ questions_used_today: 0, last_question_reset_date: today })
+        .eq("id", subscription.id);
+    }
+
+    const atLimit = usedToday >= subscription.daily_questions_limit;
     return NextResponse.json({
       hasAccess: !atLimit,
       tier: subscription.tier,
       subscription: true,
-      questionsUsedToday: subscription.questions_used_today,
+      questionsUsedToday: usedToday,
       dailyLimit: subscription.daily_questions_limit,
       atLimit,
     });

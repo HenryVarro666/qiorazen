@@ -40,9 +40,11 @@ export async function POST(
 
   // Sanitize advisor notes through guardrails
   let sanitizedNotes: string | null = null;
+  let guardrailWarnings: string[] = [];
   if (notes && notes.trim()) {
     const result = sanitizeOutput(notes);
     sanitizedNotes = result.sanitizedText;
+    guardrailWarnings = result.violations;
   }
 
   // Update the insight request (using service client to bypass RLS)
@@ -63,5 +65,9 @@ export async function POST(
     return NextResponse.json({ error: "Failed to approve" }, { status: 500 });
   }
 
-  return NextResponse.json({ success: true });
+  return NextResponse.json({
+    success: true,
+    guardrailWarnings: guardrailWarnings.length > 0 ? guardrailWarnings : undefined,
+    noteModified: guardrailWarnings.length > 0,
+  });
 }
