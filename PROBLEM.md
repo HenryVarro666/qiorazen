@@ -11,3 +11,5 @@
 **Acceptance test:** Use synthetic bilingual inputs to compare draft generation with a fixed template. Have blinded reviewers assess unsupported claims, input consistency and revision effort. Exercise role boundaries, draft visibility, rejected approvals and mock/live configuration transitions using the same cases. Verify that unapproved text remains inaccessible to end users. If text passes phrase filters but remains unsupported, strengthen the review workflow rather than claiming the filter solved validity.
 
 This is engineering acceptance for wellness content handling; no medical benefit is claimed.
+
+中文版：[PROBLEM.zh.md](PROBLEM.zh.md)

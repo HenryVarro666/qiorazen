@@ -2,6 +2,8 @@
 
 # Qiorazen
 
+**English** · [简体中文](README.zh-CN.md)
+
 **A 27-question TCM constitution screening with advisor-reviewed wellness guidance.**
 
 ![Next.js](https://img.shields.io/badge/Next.js-15-000000?logo=nextdotjs&logoColor=white)
@@ -23,7 +25,7 @@
 
 **Central tension:** Personalization encourages specific language, while limited evidence requires restraint. Pattern-based sanitization can catch known phrases but cannot by itself establish factual or medical validity.
 
-[Full problem and verification plan](PROBLEM.md)
+[Full problem and verification plan](PROBLEM.md) · [中文](PROBLEM.zh.md)
 
 <!-- problem-framing:end -->
 
@@ -32,6 +34,53 @@
 - **Screening:** 27 questions scored with the GB/T 46939-2025 standard into nine constitution types (0–100 each), shown as a radar chart.
 - **Guidance with review:** users submit 1–3 questions; Claude drafts wellness guidance, and a Wellness Advisor checks and approves it before the user sees it.
 - **Safety by default:** an emergency pre-check (40+ patterns, English and Chinese) blocks the form and points to 911 / 988; 42 guardrail rules sanitize every AI draft and advisor note.
+
+## Architecture
+
+```mermaid
+flowchart TD
+    subgraph WEB["apps/web (Next.js 15)"]
+        FORM["questionnaire-form.tsx<br/>27 questions"]
+        SCREEN["POST /api/screening"]
+        ASK["/insights/new<br/>POST /api/insights"]
+        SYM["symptom-detector.ts<br/>emergency pre-check"]
+        CLIENT["lib/ai/client.ts<br/>generateWellnessInsight()"]
+        MOCK["Mock draft<br/>no ANTHROPIC_API_KEY"]
+        GUARD["guardrails.ts<br/>sanitizeOutput()"]
+        PORTAL["/portal/cases/[id]<br/>advisor review"]
+        APPROVE["POST .../approve<br/>notes via guardrails"]
+    end
+
+    subgraph PKG["packages/"]
+        TYPES["types<br/>shared TS types"]
+        ENGINE["tcm-engine<br/>scoreConstitution()"]
+        DBPKG["db<br/>SQL migrations, RLS"]
+    end
+
+    ANTH["Anthropic API"]
+    SS[("Supabase<br/>screening_sessions")]
+    IR[("Supabase<br/>insight_requests")]
+
+    TYPES -.-> ENGINE
+    ENGINE -.-> SCREEN
+    DBPKG -.->|"migrations"| SS & IR
+    FORM -->|"answers"| SCREEN
+    SCREEN --> SS
+    SS -->|"scores"| CLIENT
+    ASK --> SYM
+    SYM -->|"match: 911 / 988"| ASK
+    SYM -->|"no match"| CLIENT
+    CLIENT -->|"key set"| ANTH
+    CLIENT -->|"no key"| MOCK
+    ANTH --> GUARD
+    GUARD -->|"practitioner_pending"| IR
+    MOCK -->|"practitioner_pending"| IR
+    IR -->|"pending cases"| PORTAL
+    PORTAL --> APPROVE
+    APPROVE -->|"practitioner_approved"| IR
+```
+
+Dotted arrows show what the workspace packages provide; solid arrows follow a request from the 27-question form to an advisor-approved insight. Without `ANTHROPIC_API_KEY`, `lib/ai/client.ts` returns a fixed mock draft instead of calling the Anthropic API; either way the draft is stored in `insight_requests` as `practitioner_pending` until a Wellness Advisor approves it.
 
 ## Stack
 
